@@ -35,6 +35,19 @@ public class WoodMainMenu extends JMenuBar {
         projectMenu.addSeparator();
         projectMenu.add(exitItem);
 
+        JMenuItem copyItem = new JMenuItem("Copy");
+        JMenuItem cutItem = new JMenuItem("Cut");
+        JMenuItem pasteItem = new JMenuItem("Paste");
+
+        copyItem.addActionListener(e -> master.fireCommand("edit.copy"));
+        cutItem.addActionListener(e -> master.fireCommand("edit.cut"));
+        pasteItem.addActionListener(e -> master.fireCommand("edit.paste"));
+
+        projectMenu.addSeparator();
+        projectMenu.add(copyItem);
+        projectMenu.add(cutItem);
+        projectMenu.add(pasteItem);
+
         // Edit-Menü
         JMenu editMenu = new JMenu("Edit");
         editMenu.setMnemonic(KeyEvent.VK_E);

@@ -13,6 +13,9 @@ public class WoodEditTree extends JTree implements SelectionListener, ContentLis
 
     private final MasterControl master;
 
+    private DefaultMutableTreeNode[] clipboardNodes;
+    private boolean cutMode = false;
+
     public WoodEditTree(String rootText, String... children) {
         this(null, rootText, children);
     }
@@ -25,6 +28,7 @@ public class WoodEditTree extends JTree implements SelectionListener, ContentLis
         for (String child : children) {
             root.add(new DefaultMutableTreeNode(child));
         }
+
         setEditable(true);
         setShowsRootHandles(true);
 
@@ -50,6 +54,11 @@ public class WoodEditTree extends JTree implements SelectionListener, ContentLis
             master.addContentListener(this);
             master.addFocusListener(this);
         }
+    }
+    private WoodClipboardTree clipboardTree;
+
+    public void setClipboardTree(WoodClipboardTree clipboardTree) {
+        this.clipboardTree = clipboardTree;
     }
 
     @Override
@@ -114,7 +123,6 @@ public class WoodEditTree extends JTree implements SelectionListener, ContentLis
         return null;
     }
 
-    // ContentListener ? reagiert auf globale Commands, aber nur wenn aktiv
     @Override
     public void onCommand(String commandId) {
         if (master != null && master.getActiveEditor() != this) {
@@ -128,6 +136,12 @@ public class WoodEditTree extends JTree implements SelectionListener, ContentLis
                 deleteNode();
             case "edit.renameNode" ->
                 renameNode();
+            case "edit.copy" ->
+                copySelection(false);
+            case "edit.cut" ->
+                copySelection(true);
+            case "edit.paste" ->
+                pasteClipboard();
         }
     }
 
@@ -181,6 +195,81 @@ public class WoodEditTree extends JTree implements SelectionListener, ContentLis
         if (path != null) {
             startEditingAtPath(path);
         }
+    }
+
+    private void copySelection(boolean cut) {
+        TreePath[] paths = getSelectionPaths();
+        if (paths == null || paths.length == 0) {
+            return;
+        }
+
+        clipboardNodes = new DefaultMutableTreeNode[paths.length];
+        for (int i = 0; i < paths.length; i++) {
+            clipboardNodes[i] = (DefaultMutableTreeNode) paths[i].getLastPathComponent();
+        }
+        cutMode = cut;
+
+        if (clipboardTree != null) {
+            clipboardTree.showClipboardContent(clipboardNodes);
+        }
+
+    }
+
+    private void pasteClipboard() {
+        if (clipboardNodes == null || clipboardNodes.length == 0) {
+            return;
+        }
+
+        TreePath path = getSelectionPath();
+        if (path == null) {
+            return;
+        }
+
+        DefaultMutableTreeNode parent = (DefaultMutableTreeNode) path.getLastPathComponent();
+        DefaultTreeModel model = (DefaultTreeModel) getModel();
+
+        int index = parent.getChildCount();
+        DefaultMutableTreeNode lastCopy = null;
+
+        for (DefaultMutableTreeNode node : clipboardNodes) {
+            DefaultMutableTreeNode copy = deepCopy(node);
+            model.insertNodeInto(copy, parent, index++);
+            lastCopy = copy;
+        }
+
+        if (lastCopy != null) {
+            TreePath newPath = new TreePath(lastCopy.getPath());
+            setSelectionPath(newPath);
+            scrollPathToVisible(newPath);
+        }
+
+        // Bei Cut: Originale entfernen
+        if (cutMode) {
+            for (int i = clipboardNodes.length - 1; i >= 0; i--) {
+                DefaultMutableTreeNode n = clipboardNodes[i];
+                MutableTreeNode p = (MutableTreeNode) n.getParent();
+                if (p != null) {
+                    model.removeNodeFromParent(n);
+                }
+            }
+            cutMode = false;
+        }
+
+        // Events (Properties etc.)
+        if (master != null && master.getActiveEditor() == this) {
+            DefaultMutableTreeNode sel
+                    = (DefaultMutableTreeNode) getLastSelectedPathComponent();
+            master.fireSelection(sel);
+        }
+    }
+
+    private DefaultMutableTreeNode deepCopy(DefaultMutableTreeNode original) {
+        DefaultMutableTreeNode copy = new DefaultMutableTreeNode(original.getUserObject());
+        for (int i = 0; i < original.getChildCount(); i++) {
+            DefaultMutableTreeNode child = (DefaultMutableTreeNode) original.getChildAt(i);
+            copy.add(deepCopy(child));
+        }
+        return copy;
     }
 
 }

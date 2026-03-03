@@ -63,6 +63,7 @@ public class WoodWindow extends JFrame {
 
         JTabbedPane bottomTabs = new JTabbedPane();
         bottomTabs.addTab("Properties", createPropertiesPanel());
+        bottomTabs.addTab("Clipboard", createClipboardPanel());
         bottomTabs.addTab("KI Assistant", createKIAssistant());
         verticalSplit.setTopComponent(horizontalSplit);
         verticalSplit.setBottomComponent(bottomTabs);
@@ -74,6 +75,9 @@ public class WoodWindow extends JFrame {
 
         // Properties an Selection-Orator h�ngen
         master.addSelectionListener(propertyModel);
+
+        editorTree1.setClipboardTree(clipboardTree);
+        editorTree2.setClipboardTree(clipboardTree);
 
         setLocationRelativeTo(null);
         setVisible(true);
@@ -93,6 +97,15 @@ public class WoodWindow extends JFrame {
         return panel;
     }
 
+    private WoodClipboardTree clipboardTree;
+
+    private JPanel createClipboardPanel() {
+        clipboardTree = new WoodClipboardTree();
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.add(new JScrollPane(clipboardTree), BorderLayout.CENTER);
+        return panel;
+    }
+
     private JPanel createKIAssistant() {
         JPanel panel = new JPanel(new BorderLayout());
         JTextArea prompt = new JTextArea(5, 20);
@@ -101,6 +114,10 @@ public class WoodWindow extends JFrame {
         panel.add(new JScrollPane(prompt), BorderLayout.CENTER);
         panel.add(askBtn, BorderLayout.SOUTH);
         return panel;
+    }
+
+    public WoodClipboardTree getClipboardTree() {
+        return clipboardTree;
     }
 
     public static void main(String[] args) {

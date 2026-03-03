@@ -8,8 +8,8 @@ import javax.swing.*;
 public class WoodEditPopup extends JPopupMenu {
 
     public WoodEditPopup(MasterControl master) {
-        JMenuItem addNodeItem = new JMenuItem("Node hinzufügen");
-        JMenuItem deleteNodeItem = new JMenuItem("Node löschen");
+        JMenuItem addNodeItem = new JMenuItem("Node hinzufÃ¼gen");
+        JMenuItem deleteNodeItem = new JMenuItem("Node lÃ¶schen");
         JMenuItem renameNodeItem = new JMenuItem("Node umbenennen");
 
         addNodeItem.addActionListener(e -> master.fireCommand("edit.addNode"));
@@ -19,6 +19,19 @@ public class WoodEditPopup extends JPopupMenu {
         add(addNodeItem);
         add(deleteNodeItem);
         add(renameNodeItem);
+
+        JMenuItem copyItem = new JMenuItem("Copy");
+        JMenuItem cutItem = new JMenuItem("Cut");
+        JMenuItem pasteItem = new JMenuItem("Paste");
+
+        copyItem.addActionListener(e -> master.fireCommand("edit.copy"));
+        cutItem.addActionListener(e -> master.fireCommand("edit.cut"));
+        pasteItem.addActionListener(e -> master.fireCommand("edit.paste"));
+
+        addSeparator();
+        add(copyItem);
+        add(cutItem);
+        add(pasteItem);
     }
 
     /**
