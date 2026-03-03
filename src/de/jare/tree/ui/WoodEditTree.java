@@ -5,8 +5,6 @@ import de.jare.tree.control.listeners.ContentListener;
 import de.jare.tree.control.listeners.FocusListener;
 import de.jare.tree.control.listeners.SelectionListener;
 import javax.swing.*;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.*;
 
 public class WoodEditTree extends JTree implements SelectionListener, ContentListener, FocusListener {
@@ -30,15 +28,12 @@ public class WoodEditTree extends JTree implements SelectionListener, ContentLis
         setShowsRootHandles(true);
 
         // eigene Selektion an MasterControl melden, aber nur wenn dieser Tree aktiv ist
-        addTreeSelectionListener(new TreeSelectionListener() {
-            @Override
-            public void valueChanged(TreeSelectionEvent e) {
-                if (master != null && master.getActiveEditor() == WoodEditTree.this) {
-                    DefaultMutableTreeNode node
-                            = (DefaultMutableTreeNode) getLastSelectedPathComponent();
-                    // darf explizit auch null sein
-                    master.fireSelection(node);
-                }
+        addTreeSelectionListener(e -> {
+            if (master != null && master.getActiveEditor() == WoodEditTree.this) {
+                DefaultMutableTreeNode node
+                        = (DefaultMutableTreeNode) getLastSelectedPathComponent();
+                boolean rootSelected = node != null && node.getParent() == null;
+                master.fireSelection(node, rootSelected);
             }
         });
 
@@ -72,7 +67,7 @@ public class WoodEditTree extends JTree implements SelectionListener, ContentLis
     }
 
     @Override
-    public void onNodeSelected(Object node) {
+    public void onNodeSelected(Object node, Object... payload) {
         // Nur reagieren, wenn dieser Editor aktuell aktiv ist
         if (master != null && master.getActiveEditor() != this) {
             return;
@@ -93,7 +88,7 @@ public class WoodEditTree extends JTree implements SelectionListener, ContentLis
     }
 
     @Override
-    public void onEditorSelected(Object editor) {
+    public void onEditorSelected(Object editor, Object... payload) {
         if (master == null || editor != this) {
             return;
         }
@@ -177,8 +172,10 @@ public class WoodEditTree extends JTree implements SelectionListener, ContentLis
 
         // explizit auch null melden, damit Properties sich leeren k�nnen
         if (master != null && master.getActiveEditor() == this) {
-            master.fireSelection(newSelection);
+            boolean rootSelected = newSelection != null && newSelection.getParent() == null;
+            master.fireSelection(newSelection, rootSelected);
         }
+
     }
 
     private void renameNode() {

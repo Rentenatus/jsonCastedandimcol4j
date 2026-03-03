@@ -45,12 +45,12 @@ public class PropertyTableModel extends AbstractTableModel implements SelectionL
     }
 
     @Override
-    public void onNodeSelected(Object node) {
+    public void onNodeSelected(Object node, Object... payload) {
         updateProperties(node);
     }
 
     @Override
-    public void onEditorSelected(Object editor) {
+    public void onEditorSelected(Object editor, Object... payload) {
         // NoOp
     }
 

@@ -11,7 +11,7 @@ public class MasterControl {
     private final Orator<FocusListener> focusOrator = new Orator<>();
     private final Orator<SelectionListener> selectionOrator = new Orator<>();
     private final Orator<ContentListener> contentOrator = new Orator<>();
-
+    
     private WoodClipboardTree clipboardTree;
     // welcher Editor ist aktuell aktiv (Tab-basiert)?
     private Object activeEditor; // bewusst generisch
@@ -20,31 +20,31 @@ public class MasterControl {
     public void addFocusListener(FocusListener l) {
         focusOrator.addListener(l);
     }
-
+    
     public void addSelectionListener(SelectionListener l) {
         selectionOrator.addListener(l);
     }
-
+    
     public void addContentListener(ContentListener l) {
         contentOrator.addListener(l);
     }
-
+    
     public void removeFocusListener(FocusListener l) {
         focusOrator.removeListener(l);
     }
-
+    
     public void removeSelectionListener(SelectionListener l) {
         selectionOrator.removeListener(l);
     }
-
+    
     public void removeContentListener(ContentListener l) {
         contentOrator.removeListener(l);
     }
-
+    
     public void setClipboardTree(WoodClipboardTree clipboardTree) {
         this.clipboardTree = clipboardTree;
     }
-
+    
     public WoodClipboardTree getClipboardTree() {
         return clipboardTree;
     }
@@ -64,20 +64,21 @@ public class MasterControl {
         if (editor != null) {
             focusOrator.say(l -> l.onFocusGained());
         }
+        selectionOrator.say(l -> l.onEditorSelected(editor));
     }
 
     // Vom aktiven Editor gerufen, wenn sich die Node-Selektion ?ndert
-    public void fireSelection(Object node) {
-        selectionOrator.say(l -> l.onNodeSelected(node));
+    public void fireSelection(Object node, Object... payload) {
+        selectionOrator.say(l -> l.onNodeSelected(node, payload));
     }
 
     // Vom Men? / KI / Toolbar gerufen
     public void fireCommand(String commandId, Object... payload) {
         contentOrator.say(l -> l.onCommand(commandId, payload));
     }
-
+    
     public Object getActiveEditor() {
         return activeEditor;
     }
-
+    
 }

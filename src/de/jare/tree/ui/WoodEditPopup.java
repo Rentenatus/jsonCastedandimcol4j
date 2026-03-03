@@ -24,14 +24,32 @@ public class WoodEditPopup extends JPopupMenu {
         JMenuItem cutItem = new JMenuItem("Cut");
         JMenuItem pasteItem = new JMenuItem("Paste");
 
-        copyItem.addActionListener(e -> master.fireCommand("edit.copy",master.getClipboardTree()));
-        cutItem.addActionListener(e -> master.fireCommand("edit.cut",master.getClipboardTree()));
-        pasteItem.addActionListener(e -> master.fireCommand("edit.paste",master.getClipboardTree()));
+        copyItem.addActionListener(e -> master.fireCommand("edit.copy", master.getClipboardTree()));
+        cutItem.addActionListener(e -> master.fireCommand("edit.cut", master.getClipboardTree()));
+        pasteItem.addActionListener(e -> master.fireCommand("edit.paste", master.getClipboardTree()));
 
         addSeparator();
         add(copyItem);
         add(cutItem);
         add(pasteItem);
+
+        master.addSelectionListener(new de.jare.tree.control.listeners.SelectionListener() {
+            @Override
+            public void onNodeSelected(Object node, Object... payload) {
+                boolean rootSelected = false;
+                if (payload != null && payload.length > 0 && payload[0] instanceof Boolean b) {
+                    rootSelected = b;
+                }
+                boolean enableCutDelete = !rootSelected && node != null;
+                deleteNodeItem.setEnabled(enableCutDelete);
+                cutItem.setEnabled(enableCutDelete);
+            }
+
+            @Override
+            public void onEditorSelected(Object editor, Object... payload) {
+                // optional: Menü bei Editorwechsel anpassen
+            }
+        });
     }
 
     /**
