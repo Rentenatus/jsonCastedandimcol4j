@@ -3,6 +3,7 @@ package de.jare.tree.control;
 import de.jare.tree.control.listeners.ContentListener;
 import de.jare.tree.control.listeners.FocusListener;
 import de.jare.tree.control.listeners.SelectionListener;
+import de.jare.tree.ui.WoodClipboardTree;
 
 public class MasterControl {
 
@@ -11,6 +12,7 @@ public class MasterControl {
     private final Orator<SelectionListener> selectionOrator = new Orator<>();
     private final Orator<ContentListener> contentOrator = new Orator<>();
 
+    private WoodClipboardTree clipboardTree;
     // welcher Editor ist aktuell aktiv (Tab-basiert)?
     private Object activeEditor; // bewusst generisch
 
@@ -39,7 +41,15 @@ public class MasterControl {
         contentOrator.removeListener(l);
     }
 
-    // Vom UI (z.B. JTabbedPane) gerufen, wenn ein Tab gew�hlt wird
+    public void setClipboardTree(WoodClipboardTree clipboardTree) {
+        this.clipboardTree = clipboardTree;
+    }
+
+    public WoodClipboardTree getClipboardTree() {
+        return clipboardTree;
+    }
+
+    // Vom UI (z.B. JTabbedPane) gerufen, wenn ein Tab gew?hlt wird
     public void setActiveEditor(Object editor) {
         Object previous = this.activeEditor;
         if (previous == editor) {
@@ -56,17 +66,18 @@ public class MasterControl {
         }
     }
 
-    // Vom aktiven Editor gerufen, wenn sich die Node-Selektion �ndert
+    // Vom aktiven Editor gerufen, wenn sich die Node-Selektion ?ndert
     public void fireSelection(Object node) {
         selectionOrator.say(l -> l.onNodeSelected(node));
     }
 
-    // Vom Men� / KI / Toolbar gerufen
-    public void fireCommand(String commandId) {
-        contentOrator.say(l -> l.onCommand(commandId));
+    // Vom Men? / KI / Toolbar gerufen
+    public void fireCommand(String commandId, Object... payload) {
+        contentOrator.say(l -> l.onCommand(commandId, payload));
     }
 
     public Object getActiveEditor() {
         return activeEditor;
     }
+
 }

@@ -75,9 +75,7 @@ public class WoodWindow extends JFrame {
 
         // Properties an Selection-Orator h�ngen
         master.addSelectionListener(propertyModel);
-
-        editorTree1.setClipboardTree(clipboardTree);
-        editorTree2.setClipboardTree(clipboardTree);
+        master.setClipboardTree(clipboardTree);
 
         setLocationRelativeTo(null);
         setVisible(true);
@@ -106,6 +104,10 @@ public class WoodWindow extends JFrame {
         return panel;
     }
 
+    public WoodClipboardTree getClipboardTree() {
+        return clipboardTree;
+    }
+
     private JPanel createKIAssistant() {
         JPanel panel = new JPanel(new BorderLayout());
         JTextArea prompt = new JTextArea(5, 20);
@@ -114,10 +116,6 @@ public class WoodWindow extends JFrame {
         panel.add(new JScrollPane(prompt), BorderLayout.CENTER);
         panel.add(askBtn, BorderLayout.SOUTH);
         return panel;
-    }
-
-    public WoodClipboardTree getClipboardTree() {
-        return clipboardTree;
     }
 
     public static void main(String[] args) {

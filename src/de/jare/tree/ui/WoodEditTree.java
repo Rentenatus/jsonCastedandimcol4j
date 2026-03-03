@@ -13,9 +13,6 @@ public class WoodEditTree extends JTree implements SelectionListener, ContentLis
 
     private final MasterControl master;
 
-    private DefaultMutableTreeNode[] clipboardNodes;
-    private boolean cutMode = false;
-
     public WoodEditTree(String rootText, String... children) {
         this(null, rootText, children);
     }
@@ -54,11 +51,6 @@ public class WoodEditTree extends JTree implements SelectionListener, ContentLis
             master.addContentListener(this);
             master.addFocusListener(this);
         }
-    }
-    private WoodClipboardTree clipboardTree;
-
-    public void setClipboardTree(WoodClipboardTree clipboardTree) {
-        this.clipboardTree = clipboardTree;
     }
 
     @Override
@@ -124,11 +116,10 @@ public class WoodEditTree extends JTree implements SelectionListener, ContentLis
     }
 
     @Override
-    public void onCommand(String commandId) {
+    public void onCommand(String commandId, Object... payload) {
         if (master != null && master.getActiveEditor() != this) {
             return;
         }
-
         switch (commandId) {
             case "edit.addNode" ->
                 addNode();
@@ -199,24 +190,16 @@ public class WoodEditTree extends JTree implements SelectionListener, ContentLis
 
     private void copySelection(boolean cut) {
         TreePath[] paths = getSelectionPaths();
-        if (paths == null || paths.length == 0) {
+        if (paths == null || paths.length == 0 || master == null) {
             return;
         }
 
-        clipboardNodes = new DefaultMutableTreeNode[paths.length];
-        for (int i = 0; i < paths.length; i++) {
-            clipboardNodes[i] = (DefaultMutableTreeNode) paths[i].getLastPathComponent();
-        }
-        cutMode = cut;
-
-        if (clipboardTree != null) {
-            clipboardTree.showClipboardContent(clipboardNodes);
-        }
+        master.getClipboardTree().copySelection(this, paths, cut);
 
     }
 
     private void pasteClipboard() {
-        if (clipboardNodes == null || clipboardNodes.length == 0) {
+        if (master == null) {
             return;
         }
 
@@ -225,35 +208,7 @@ public class WoodEditTree extends JTree implements SelectionListener, ContentLis
             return;
         }
 
-        DefaultMutableTreeNode parent = (DefaultMutableTreeNode) path.getLastPathComponent();
-        DefaultTreeModel model = (DefaultTreeModel) getModel();
-
-        int index = parent.getChildCount();
-        DefaultMutableTreeNode lastCopy = null;
-
-        for (DefaultMutableTreeNode node : clipboardNodes) {
-            DefaultMutableTreeNode copy = deepCopy(node);
-            model.insertNodeInto(copy, parent, index++);
-            lastCopy = copy;
-        }
-
-        if (lastCopy != null) {
-            TreePath newPath = new TreePath(lastCopy.getPath());
-            setSelectionPath(newPath);
-            scrollPathToVisible(newPath);
-        }
-
-        // Bei Cut: Originale entfernen
-        if (cutMode) {
-            for (int i = clipboardNodes.length - 1; i >= 0; i--) {
-                DefaultMutableTreeNode n = clipboardNodes[i];
-                MutableTreeNode p = (MutableTreeNode) n.getParent();
-                if (p != null) {
-                    model.removeNodeFromParent(n);
-                }
-            }
-            cutMode = false;
-        }
+        master.getClipboardTree().pasteClipboard(this, path);
 
         // Events (Properties etc.)
         if (master != null && master.getActiveEditor() == this) {
