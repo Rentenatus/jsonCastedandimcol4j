@@ -2,6 +2,7 @@
  */
 package de.jare.tree.ui;
 
+import de.jare.tree.data.JsonTreeNodeData;
 import java.awt.datatransfer.*;
 import java.io.IOException;
 import javax.swing.*;
@@ -54,13 +55,32 @@ class TreeNodeTransferHandler extends TransferHandler {
         if (dest == null) {
             return false;
         }
+
+        DefaultMutableTreeNode target = (DefaultMutableTreeNode) dest.getLastPathComponent();
+        Object targetUo = target.getUserObject();
+        if (!(targetUo instanceof JsonTreeNodeData targetData)) {
+            return false;
+        }
+
         try {
             DefaultMutableTreeNode[] dragged
                     = (DefaultMutableTreeNode[]) support.getTransferable().getTransferData(nodesFlavor);
-            DefaultMutableTreeNode target = (DefaultMutableTreeNode) dest.getLastPathComponent();
+
+            // 1. keine Zyklen
             for (DefaultMutableTreeNode node : dragged) {
                 if (isNodeDescendant(target, node)) {
-                    return false; // Ziel liegt im Unterbaum des Quellknotens
+                    return false;
+                }
+            }
+
+            // 2. JSON-Regeln: jeder Root des Teilbaums muss Kind von target sein d�rfen
+            for (DefaultMutableTreeNode node : dragged) {
+                Object clipUo = node.getUserObject();
+                if (!(clipUo instanceof JsonTreeNodeData clipData)) {
+                    return false;
+                }
+                if (!clipData.canBeChildOf(targetData)) {
+                    return false;
                 }
             }
         } catch (UnsupportedFlavorException | IOException e) {

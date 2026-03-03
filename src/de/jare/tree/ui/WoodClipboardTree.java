@@ -3,6 +3,7 @@
  */
 package de.jare.tree.ui;
 
+import de.jare.tree.data.JsonTreeNodeData;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
@@ -129,5 +130,22 @@ public class WoodClipboardTree extends JTree {
             copy.add(deepCopy(child));
         }
         return copy;
+    }
+
+    public boolean canPasteTo(JsonTreeNodeData targetData) {
+
+        if (targetData == null || clipboardNodes == null || clipboardNodes.length == 0) {
+            return false;
+        }
+        for (DefaultMutableTreeNode candidate : clipboardNodes) {
+            Object clipUo = candidate.getUserObject();
+            if (!(clipUo instanceof JsonTreeNodeData clipData)) {
+                return false;
+            }
+            if (!clipData.canBeChildOf(targetData)) {
+                return false;
+            }
+        }
+        return true;
     }
 }

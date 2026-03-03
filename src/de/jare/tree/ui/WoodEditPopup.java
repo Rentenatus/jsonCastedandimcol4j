@@ -1,9 +1,11 @@
 package de.jare.tree.ui;
 
 import de.jare.tree.control.MasterControl;
+import de.jare.tree.data.JsonTreeNodeData;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.*;
+import javax.swing.tree.DefaultMutableTreeNode;
 
 public class WoodEditPopup extends JPopupMenu {
 
@@ -43,6 +45,15 @@ public class WoodEditPopup extends JPopupMenu {
                 boolean enableCutDelete = !rootSelected && node != null;
                 deleteNodeItem.setEnabled(enableCutDelete);
                 cutItem.setEnabled(enableCutDelete);
+
+                boolean canPaste = false;
+                if (node instanceof DefaultMutableTreeNode dmtn) {
+                    Object uo = dmtn.getUserObject();
+                    if (uo instanceof JsonTreeNodeData targetData) {
+                        canPaste = master.getClipboardTree().canPasteTo(targetData);
+                    }
+                }
+                pasteItem.setEnabled(canPaste);
             }
 
             @Override
@@ -54,6 +65,8 @@ public class WoodEditPopup extends JPopupMenu {
 
     /**
      * Hilfsmethode, um das Popup an einem JTree zu registrieren.
+     * @param tree
+     * @param popup
      */
     public static void installOn(JTree tree, WoodEditPopup popup) {
         tree.addMouseListener(new MouseAdapter() {

@@ -4,6 +4,10 @@ import de.jare.tree.control.MasterControl;
 import de.jare.tree.control.listeners.ContentListener;
 import de.jare.tree.control.listeners.FocusListener;
 import de.jare.tree.control.listeners.SelectionListener;
+import de.jare.tree.data.JsonObjectData;
+import de.jare.tree.data.JsonPropertyData;
+import de.jare.tree.data.JsonTreeNodeData;
+
 import javax.swing.*;
 import javax.swing.tree.*;
 
@@ -11,17 +15,22 @@ public class WoodEditTree extends JTree implements SelectionListener, ContentLis
 
     private final MasterControl master;
 
-    public WoodEditTree(String rootText, String... children) {
-        this(null, rootText, children);
+    public WoodEditTree(String rootName, String... propNames) {
+        this(null, rootName, propNames);
     }
 
-    public WoodEditTree(MasterControl master, String rootText, String... children) {
-        super(new DefaultMutableTreeNode(rootText));
+    public WoodEditTree(MasterControl master, String rootName, String... propNames) {
+        // Root als JsonObjectData
+        super(new DefaultMutableTreeNode(new JsonObjectData("{" + rootName + "}")));
         this.master = master;
 
         DefaultMutableTreeNode root = (DefaultMutableTreeNode) getModel().getRoot();
-        for (String child : children) {
-            root.add(new DefaultMutableTreeNode(child));
+
+        // optionale Demo-Properties unter Root
+        for (String propName : propNames) {
+            JsonTreeNodeData childData = ((JsonTreeNodeData) root.getUserObject())
+                    .createChild(propName);
+            root.add(new DefaultMutableTreeNode(childData));
         }
 
         setEditable(true);
@@ -54,7 +63,6 @@ public class WoodEditTree extends JTree implements SelectionListener, ContentLis
         if (master != null && master.getActiveEditor() == this) {
             DefaultMutableTreeNode node
                     = (DefaultMutableTreeNode) getLastSelectedPathComponent();
-            // System.out.println("------------------------>" + node);
             master.fireSelection(node);
         }
     }
@@ -137,7 +145,14 @@ public class WoodEditTree extends JTree implements SelectionListener, ContentLis
             return;
         }
         DefaultMutableTreeNode selected = (DefaultMutableTreeNode) path.getLastPathComponent();
-        DefaultMutableTreeNode child = new DefaultMutableTreeNode("Neuer Node");
+        Object uo = selected.getUserObject();
+        if (!(uo instanceof JsonTreeNodeData data)) {
+            return; // Sicherheitsnetz
+        }
+
+        // neuen Kind-Knoten �ber die Fabrik-Methode erzeugen
+        JsonTreeNodeData childData = data.createChild("new");
+        DefaultMutableTreeNode child = new DefaultMutableTreeNode(childData);
         selected.add(child);
         ((DefaultTreeModel) getModel()).reload(selected);
     }
@@ -157,7 +172,7 @@ public class WoodEditTree extends JTree implements SelectionListener, ContentLis
 
         model.removeNodeFromParent(selected);
 
-        // neue Selektion ermitteln: n�chster/ vorheriger Bruder oder nichts
+        // neue Selektion ermitteln: n�chster/vorheriger Bruder oder nichts
         DefaultMutableTreeNode newSelection = null;
         if (parent.getChildCount() > 0) {
             int newIdx = Math.min(idx, parent.getChildCount() - 1);
@@ -192,7 +207,6 @@ public class WoodEditTree extends JTree implements SelectionListener, ContentLis
         }
 
         master.getClipboardTree().copySelection(this, paths, cut);
-
     }
 
     private void pasteClipboard() {
@@ -205,6 +219,20 @@ public class WoodEditTree extends JTree implements SelectionListener, ContentLis
             return;
         }
 
+        // Zielknoten (Elternkandidat)
+        DefaultMutableTreeNode target = (DefaultMutableTreeNode) path.getLastPathComponent();
+        Object targetUo = target.getUserObject();
+        if (!(targetUo instanceof JsonTreeNodeData targetData)) {
+            // Ziel ist kein JSON-Knoten -> nichts einf�gen
+            return;
+        }
+
+        if (!master.getClipboardTree().canPasteTo(targetData)) {
+            UIManager.getLookAndFeel().provideErrorFeedback(this);
+            return;
+        }
+
+        // Wenn Typ passt, regul�r einf�gen
         master.getClipboardTree().pasteClipboard(this, path);
 
         // Events (Properties etc.)
