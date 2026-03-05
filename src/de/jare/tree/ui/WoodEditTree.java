@@ -1,3 +1,10 @@
+/* <copyright> 
+ * Copyright (c) 2025, Janusch Rentenatus. This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v2.0 which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v20.html
+ * </copyright>
+ */
+
 package de.jare.tree.ui;
 
 import de.jare.tree.control.MasterControl;
@@ -5,7 +12,6 @@ import de.jare.tree.control.listeners.ContentListener;
 import de.jare.tree.control.listeners.FocusListener;
 import de.jare.tree.control.listeners.SelectionListener;
 import de.jare.tree.data.JsonObjectData;
-import de.jare.tree.data.JsonPropertyData;
 import de.jare.tree.data.JsonTreeNodeData;
 
 import javax.swing.*;
@@ -33,8 +39,10 @@ public class WoodEditTree extends JTree implements SelectionListener, ContentLis
             root.add(new DefaultMutableTreeNode(childData));
         }
 
-        setEditable(true);
         setShowsRootHandles(true);
+        setCellRenderer(new JsonTreeCellRenderer());
+        setEditable(true);
+        setCellEditor(new JsonTreeCellEditor());
 
         // eigene Selektion an MasterControl melden, aber nur wenn dieser Tree aktiv ist
         addTreeSelectionListener(e -> {
@@ -150,7 +158,7 @@ public class WoodEditTree extends JTree implements SelectionListener, ContentLis
             return; // Sicherheitsnetz
         }
 
-        // neuen Kind-Knoten �ber die Fabrik-Methode erzeugen
+        // neuen Kind-Knoten ?ber die Fabrik-Methode erzeugen
         JsonTreeNodeData childData = data.createChild("new");
         DefaultMutableTreeNode child = new DefaultMutableTreeNode(childData);
         selected.add(child);
@@ -167,12 +175,18 @@ public class WoodEditTree extends JTree implements SelectionListener, ContentLis
             return;
         }
         DefaultTreeModel model = (DefaultTreeModel) getModel();
-        MutableTreeNode parent = (MutableTreeNode) selected.getParent();
+        DefaultMutableTreeNode parent = (DefaultMutableTreeNode) selected.getParent();
         int idx = parent.getIndex(selected);
+
+        if (selected.getUserObject() instanceof JsonTreeNodeData selectedData) {
+            if (parent.getUserObject() instanceof JsonTreeNodeData parentData) {
+                selectedData.sayOnRemoved(parentData);
+            }
+        }
 
         model.removeNodeFromParent(selected);
 
-        // neue Selektion ermitteln: n�chster/vorheriger Bruder oder nichts
+        // neue Selektion ermitteln: naechster/vorheriger Bruder oder nichts
         DefaultMutableTreeNode newSelection = null;
         if (parent.getChildCount() > 0) {
             int newIdx = Math.min(idx, parent.getChildCount() - 1);
@@ -185,7 +199,7 @@ public class WoodEditTree extends JTree implements SelectionListener, ContentLis
             clearSelection();
         }
 
-        // explizit auch null melden, damit Properties sich leeren k�nnen
+        // explizit auch null melden, damit Properties sich leeren koennen
         if (master != null && master.getActiveEditor() == this) {
             boolean rootSelected = newSelection != null && newSelection.getParent() == null;
             master.fireSelection(newSelection, rootSelected);
@@ -223,7 +237,7 @@ public class WoodEditTree extends JTree implements SelectionListener, ContentLis
         DefaultMutableTreeNode target = (DefaultMutableTreeNode) path.getLastPathComponent();
         Object targetUo = target.getUserObject();
         if (!(targetUo instanceof JsonTreeNodeData targetData)) {
-            // Ziel ist kein JSON-Knoten -> nichts einf�gen
+            // Ziel ist kein JSON-Knoten -> nichts einfuegen
             return;
         }
 
@@ -232,7 +246,7 @@ public class WoodEditTree extends JTree implements SelectionListener, ContentLis
             return;
         }
 
-        // Wenn Typ passt, regul�r einf�gen
+        // Wenn Typ passt, regul?r einf?gen
         master.getClipboardTree().pasteClipboard(this, path);
 
         // Events (Properties etc.)

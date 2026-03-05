@@ -1,21 +1,50 @@
-/*
+/* <copyright> 
+ * Copyright (c) 2025, Janusch Rentenatus. This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v2.0 which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v20.html
+ * </copyright>
  */
 package de.jare.tree.data;
+
+import java.awt.Color;
 
 /**
  *
  */
 public final class JsonObjectData implements JsonTreeNodeData {
 
-    private final String name; // z.B. "{root}", "{player}"
+    private String objektInfo; // z.B. "root" 
+    private String primValue; // z.B. "root" 
 
-    public JsonObjectData(String name) {
-        this.name = name;
+    public JsonObjectData(String objektInfo) {
+        this.objektInfo = objektInfo;
+        this.primValue = null;
+    }
+
+    public JsonObjectData(String primValue, String objektInfo) {
+        this.objektInfo = objektInfo;
+        this.primValue = primValue;
+    }
+
+    public String getObjektInfo() {
+        return objektInfo;
+    }
+
+    public void setObjektInfo(String objektInfo) {
+        this.objektInfo = objektInfo;
+    }
+
+    public String getPrimValue() {
+        return primValue;
+    }
+
+    public void setPrimValue(String primValue) {
+        this.primValue = primValue;
     }
 
     @Override
     public String toString() {
-        return name;
+        return primValue == null ? objektInfo : primValue + " : " + objektInfo;
     }
 
     @Override
@@ -29,6 +58,15 @@ public final class JsonObjectData implements JsonTreeNodeData {
     }
 
     @Override
+    public void sayOnRemoved(JsonTreeNodeData parent) {
+        parent.onChildObjectDataRemoved(this);
+    }
+
+    @Override
+    public void onChilPropertyDataRemoved(JsonPropertyData child) {
+    }
+
+    @Override
     public boolean canBeChildOf(JsonTreeNodeData nodeDate) {
         if (nodeDate == null) {
             return false;
@@ -37,12 +75,27 @@ public final class JsonObjectData implements JsonTreeNodeData {
     }
 
     @Override
-    public boolean canBeParentOfObjectData() {
-        return false;
+    public boolean canBeParentOfPropertyData() {
+        return true;
     }
 
     @Override
-    public boolean canBeParentOfPropertyData() {
-        return true;
+    public String getEditText() {
+        return primValue;
+    }
+
+    @Override
+    public void setEditText(String editText) {
+        this.primValue = editText.isEmpty() ? null : editText;
+    }
+
+    @Override
+    public String getInfoText() {
+        return (objektInfo == null || objektInfo.isEmpty()) ? "" : ": " + objektInfo;
+    }
+
+    @Override
+    public Color getForecolor() {
+        return Color.DARK_GRAY;
     }
 }

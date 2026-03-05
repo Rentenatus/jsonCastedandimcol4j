@@ -1,6 +1,12 @@
-/*
+/* <copyright> 
+ * Copyright (c) 2025, Janusch Rentenatus. This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v2.0 which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v20.html
+ * </copyright>
  */
 package de.jare.tree.data;
+
+import java.awt.Color;
 
 /**
  *
@@ -49,17 +55,29 @@ public final class JsonPropertyData implements JsonTreeNodeData {
 
     @Override
     public String toString() {
-        return primValue == null ? propName + "= " : propName + "= '" + primValue + "'";
+        return primValue == null ? propName + " = " : propName + " = '" + primValue + "'";
     }
 
     @Override
     public JsonTreeNodeData createChild(String aName) {
-        return new JsonObjectData(aName);
+        JsonObjectData ret = new JsonObjectData(primValue, aName);
+        primValue = null;
+        return ret;
     }
 
     @Override
     public JsonTreeNodeData createNeighbor(String aName) {
         return new JsonPropertyData(aName);
+    }
+
+    @Override
+    public void sayOnRemoved(JsonTreeNodeData parent) {
+        parent.onChilPropertyDataRemoved(this);
+    }
+
+    @Override
+    public void onChildObjectDataRemoved(JsonObjectData child) {
+        primValue = child.getPrimValue();
     }
 
     @Override
@@ -76,8 +94,23 @@ public final class JsonPropertyData implements JsonTreeNodeData {
     }
 
     @Override
-    public boolean canBeParentOfPropertyData() {
-        return false;
+    public String getEditText() {
+        return propName;
+    }
+
+    @Override
+    public void setEditText(String editText) {
+        this.propName = editText;
+    }
+
+    @Override
+    public String getInfoText() {
+        return primValue == null ? " =" : " = '" + primValue + "'";
+    }
+
+    @Override
+    public Color getForecolor() {
+        return Color.BLUE;
     }
 
 }

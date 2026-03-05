@@ -4,10 +4,15 @@
  * http://www.eclipse.org/legal/epl-v20.html
  * </copyright>
  */
+package de.jare.tree;
 
-package de.jare.tree.control.listeners;
+import de.jare.tree.ui.WoodWindow;
+import javax.swing.*;
 
-public interface ContentListener {
+public class WoodJsonEditor {
 
-    void onCommand(String commandId, Object... payload);
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(WoodWindow::new);
+    }
+
 }
