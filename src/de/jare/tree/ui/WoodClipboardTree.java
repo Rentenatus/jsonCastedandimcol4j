@@ -66,6 +66,7 @@ public class WoodClipboardTree extends JTree {
         clipboardNodes = new DefaultMutableTreeNode[paths.length];
         for (int i = 0; i < paths.length; i++) {
             clipboardNodes[i] = (DefaultMutableTreeNode) paths[i].getLastPathComponent();
+            //(new Throwable("----------------- xxxxxxxxxxxx " + clipboardNodes[i])).printStackTrace();
         }
         cutMode = cut;
         showClipboardContent(clipboardNodes);

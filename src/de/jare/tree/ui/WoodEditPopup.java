@@ -1,10 +1,9 @@
-/* <copyright> 
+/* <copyright>
  * Copyright (c) 2025, Janusch Rentenatus. This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
  * </copyright>
  */
-
 package de.jare.tree.ui;
 
 import de.jare.tree.control.MasterControl;
@@ -13,6 +12,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreePath;
 
 public class WoodEditPopup extends JPopupMenu {
 
@@ -46,7 +46,7 @@ public class WoodEditPopup extends JPopupMenu {
             @Override
             public void onNodeSelected(Object node, Object... payload) {
                 boolean rootSelected = false;
-                if (payload != null && payload.length > 0 && payload[0] instanceof Boolean b) {
+                if (payload != null && payload.length > 1 && payload[1] instanceof Boolean b) {
                     rootSelected = b;
                 }
                 boolean enableCutDelete = !rootSelected && node != null;
@@ -72,30 +72,56 @@ public class WoodEditPopup extends JPopupMenu {
 
     /**
      * Hilfsmethode, um das Popup an einem JTree zu registrieren.
+     *
      * @param tree
      * @param popup
      */
     public static void installOn(JTree tree, WoodEditPopup popup) {
-        tree.addMouseListener(new MouseAdapter() {
-            private void showIfPopup(MouseEvent e) {
-                if (e.isPopupTrigger()) {
-                    int row = tree.getRowForLocation(e.getX(), e.getY());
-                    if (row != -1) {
-                        tree.setSelectionRow(row);
-                    }
-                    popup.show(tree, e.getX(), e.getY());
-                }
-            }
 
+        tree.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                showIfPopup(e);
+                handlePopupTrigger(e);
             }
 
             @Override
             public void mouseReleased(MouseEvent e) {
-                showIfPopup(e);
+                handlePopupTrigger(e);
+            }
+
+            private void handlePopupTrigger(MouseEvent e) {
+                if (!e.isPopupTrigger()) {
+                    return;
+                }
+                int x = e.getX();
+                int y = e.getY();
+                JTree tree = (JTree) e.getSource();
+                TreePath path = tree.getPathForLocation(x, y);
+                if (path == null) {
+                    return;
+                }
+
+                TreePath[] selectedPaths = tree.getSelectionPaths();
+                boolean alreadySelected = false;
+                if (selectedPaths != null) {
+                    for (TreePath p : selectedPaths) {
+                        if (p.equals(path)) {
+                            alreadySelected = true;
+                            break;
+                        }
+                    }
+                }
+
+                // Nur wenn der angeklickte Knoten noch NICHT selektiert ist,
+                // machen wir eine Einzelauswahl – sonst bleibt die Multi-Selection erhalten.
+                if (!alreadySelected) {
+                    tree.setSelectionPath(path);
+                }
+
+                // Popup anzeigen 
+                popup.show(tree, x, y);
             }
         });
     }
+
 }

@@ -1,10 +1,9 @@
-/* <copyright> 
+/* <copyright>
  * Copyright (c) 2025, Janusch Rentenatus. This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
  * </copyright>
  */
-
 package de.jare.tree.ui;
 
 import de.jare.tree.control.MasterControl;
@@ -50,13 +49,14 @@ public class WoodEditTree extends JTree implements SelectionListener, ContentLis
                 DefaultMutableTreeNode node
                         = (DefaultMutableTreeNode) getLastSelectedPathComponent();
                 boolean rootSelected = node != null && node.getParent() == null;
-                master.fireSelection(node, rootSelected);
+                master.fireSelection(node, this, rootSelected);
             }
         });
 
         setDragEnabled(true);
         setDropMode(DropMode.ON_OR_INSERT);
         setTransferHandler(new TreeNodeTransferHandler());
+        getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
 
         if (master != null) {
             master.addSelectionListener(this);
@@ -71,7 +71,7 @@ public class WoodEditTree extends JTree implements SelectionListener, ContentLis
         if (master != null && master.getActiveEditor() == this) {
             DefaultMutableTreeNode node
                     = (DefaultMutableTreeNode) getLastSelectedPathComponent();
-            master.fireSelection(node);
+            master.fireSelection(node, this);
         }
     }
 
@@ -92,14 +92,16 @@ public class WoodEditTree extends JTree implements SelectionListener, ContentLis
         if (!(node instanceof DefaultMutableTreeNode dmtn)) {
             return;
         }
-
         DefaultTreeModel model = (DefaultTreeModel) getModel();
         DefaultMutableTreeNode root = (DefaultMutableTreeNode) model.getRoot();
 
         TreePath path = findPath(root, dmtn);
         if (path != null) {
-            setSelectionPath(path);
             scrollPathToVisible(path);
+            if (payload != null && payload.length > 0 && payload[0] == this) {
+                return; // Selbst ausgeloest
+            }
+            setSelectionPath(path);
         }
     }
 
@@ -109,7 +111,7 @@ public class WoodEditTree extends JTree implements SelectionListener, ContentLis
             return;
         }
         TreePath path = getSelectionPath();
-        master.fireSelection(path == null ? null : path.getLastPathComponent());
+        master.fireSelection(path == null ? null : path.getLastPathComponent(), this);
     }
 
     private TreePath findPath(DefaultMutableTreeNode root, DefaultMutableTreeNode target) {
@@ -202,7 +204,7 @@ public class WoodEditTree extends JTree implements SelectionListener, ContentLis
         // explizit auch null melden, damit Properties sich leeren koennen
         if (master != null && master.getActiveEditor() == this) {
             boolean rootSelected = newSelection != null && newSelection.getParent() == null;
-            master.fireSelection(newSelection, rootSelected);
+            master.fireSelection(newSelection, this, rootSelected);
         }
 
     }
@@ -253,7 +255,7 @@ public class WoodEditTree extends JTree implements SelectionListener, ContentLis
         if (master != null && master.getActiveEditor() == this) {
             DefaultMutableTreeNode sel
                     = (DefaultMutableTreeNode) getLastSelectedPathComponent();
-            master.fireSelection(sel);
+            master.fireSelection(sel, this);
         }
     }
 

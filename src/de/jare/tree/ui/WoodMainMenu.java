@@ -92,7 +92,7 @@ public class WoodMainMenu extends JMenuBar {
             @Override
             public void onNodeSelected(Object node, Object... payload) {
                 boolean rootSelected = false;
-                if (payload != null && payload.length > 0 && payload[0] instanceof Boolean b) {
+                if (payload != null && payload.length > 1 && payload[1] instanceof Boolean b) {
                     rootSelected = b;
                 }
 
