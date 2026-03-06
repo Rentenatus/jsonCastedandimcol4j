@@ -111,7 +111,7 @@ public class WoodMainMenu extends JMenuBar {
             }
 
             @Override
-            public void onEditorSelected(Object editor, Object... payload) {
+            public void onEditorSelected(JTree editor, Object... payload) {
                 // hier könntest du bei Editorwechsel ggf. alles disablen,
                 // wenn kein aktiver JSON-Editor offen ist
             }

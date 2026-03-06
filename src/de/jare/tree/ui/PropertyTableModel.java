@@ -8,6 +8,7 @@
 package de.jare.tree.ui;
 
 import de.jare.tree.control.listeners.SelectionListener;
+import javax.swing.JTree;
 import javax.swing.table.AbstractTableModel;
 
 public class PropertyTableModel extends AbstractTableModel implements SelectionListener {
@@ -57,7 +58,7 @@ public class PropertyTableModel extends AbstractTableModel implements SelectionL
     }
 
     @Override
-    public void onEditorSelected(Object editor, Object... payload) {
+    public void onEditorSelected(JTree editor, Object... payload) {
         // NoOp
     }
 

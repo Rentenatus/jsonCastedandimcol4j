@@ -1,4 +1,4 @@
-/* <copyright> 
+/* <copyright>
  * Copyright (c) 2025, Janusch Rentenatus. This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
@@ -7,18 +7,21 @@
 package de.jare.tree.ui;
 
 import de.jare.tree.control.MasterControl;
+import de.jare.tree.control.UndoManager;
 import java.awt.*;
 import javax.swing.*;
 
 public class WoodWindow extends JFrame {
 
     private final MasterControl master;
+    private final UndoManager undoMan;
     private final JTabbedPane centerTabs;
     private final WoodEditTree editorTree1;
     private final WoodEditTree editorTree2;
 
     public WoodWindow() {
         master = new MasterControl();
+        undoMan = master.createUndoManager();
 
         setTitle("Tree Editor");
         setSize(1200, 800);
@@ -31,10 +34,12 @@ public class WoodWindow extends JFrame {
         JSplitPane horizontalSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         JSplitPane verticalSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
 
+        // Left: project tree
         WoodProjektTree projectTree = new WoodProjektTree("Project", "Node1", "Node2", "Folder");
         projectTree.setPreferredSize(new Dimension(250, 0));
         horizontalSplit.setLeftComponent(new JScrollPane(projectTree));
 
+        // Center: editor tabs + upper toolbar
         centerTabs = new JTabbedPane();
 
         editorTree1 = new WoodEditTree(master, "Root1", "Scene1", "Character1");
@@ -42,12 +47,44 @@ public class WoodWindow extends JFrame {
 
         centerTabs.addTab("Tree Editor 1", new JScrollPane(editorTree1));
         centerTabs.addTab("Tree Editor 2", new JScrollPane(editorTree2));
-        horizontalSplit.setRightComponent(centerTabs);
+
+        // obere Toolbar ueber den Editor-Tabs
+        JPanel upperToolbar = new JPanel(new FlowLayout(FlowLayout.LEFT));
+
+        // Icons laden
+        Icon undoIcon = new ImageIcon(getClass().getResource("/icons/undo.png"));
+        Icon redoIcon = new ImageIcon(getClass().getResource("/icons/redo.png"));
+
+        // Undo-Button
+        JButton btnUndo = new JButton(undoIcon);
+        btnUndo.setText(null);
+        btnUndo.setBorderPainted(true);
+        btnUndo.setContentAreaFilled(false);
+        btnUndo.setFocusPainted(false);
+        btnUndo.setOpaque(false);
+
+        // Redo-Button
+        JButton btnRedo = new JButton(redoIcon);
+        btnRedo.setText(null);
+        btnRedo.setBorderPainted(true);
+        btnRedo.setContentAreaFilled(false);
+        btnRedo.setFocusPainted(false);
+        btnRedo.setOpaque(false);
+
+        // TODO: ActionListener für Undo/Redo ergänzen
+        upperToolbar.add(btnUndo);
+        upperToolbar.add(btnRedo);
+
+        JPanel centerPanel = new JPanel(new BorderLayout());
+        centerPanel.add(upperToolbar, BorderLayout.NORTH);
+        centerPanel.add(centerTabs, BorderLayout.CENTER);
+
+        horizontalSplit.setRightComponent(centerPanel);
 
         // Tab-Wechsel steuert aktiven Editor
         centerTabs.addChangeListener(e -> {
             int idx = centerTabs.getSelectedIndex();
-            Object editor = switch (idx) {
+            JTree editor = switch (idx) {
                 case 0 ->
                     editorTree1;
                 case 1 ->
@@ -64,19 +101,32 @@ public class WoodWindow extends JFrame {
         WoodEditPopup.installOn(editorTree1, popup);
         WoodEditPopup.installOn(editorTree2, popup);
 
+        // Bottom: tabs + bottom toolbar
         JTabbedPane bottomTabs = new JTabbedPane();
         bottomTabs.addTab("Properties", createPropertiesPanel());
         bottomTabs.addTab("Clipboard", createClipboardPanel());
         bottomTabs.addTab("KI Assistant", createKIAssistant());
+
+        JPanel bottomToolbar = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JButton btnApply = new JButton("Apply");
+        JCheckBox cbAutoApply = new JCheckBox("Auto apply");
+        // TODO: ActionListener hinzuf?gen
+        bottomToolbar.add(btnApply);
+        bottomToolbar.add(cbAutoApply);
+
+        JPanel bottomPanel = new JPanel(new BorderLayout());
+        bottomPanel.add(bottomToolbar, BorderLayout.NORTH);
+        bottomPanel.add(bottomTabs, BorderLayout.CENTER);
+
         verticalSplit.setTopComponent(horizontalSplit);
-        verticalSplit.setBottomComponent(bottomTabs);
+        verticalSplit.setBottomComponent(bottomPanel);
 
         horizontalSplit.setDividerLocation(300);
         verticalSplit.setDividerLocation(600);
 
         add(verticalSplit, BorderLayout.CENTER);
 
-        // Properties an Selection-Orator h�ngen
+        // Properties an Selection-Orator h?ngen
         master.addSelectionListener(propertyModel);
         master.setClipboardTree(clipboardTree);
 
@@ -91,7 +141,7 @@ public class WoodWindow extends JFrame {
         propertyModel = new PropertyTableModel();
         propertyTable = new JTable(propertyModel);
         propertyTable.setFillsViewportHeight(true);
-        propertyTable.getTableHeader().setVisible(false); // keine �berschrift anzeigen
+        propertyTable.getTableHeader().setVisible(false); // keine ?berschrift anzeigen
 
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(new JScrollPane(propertyTable), BorderLayout.CENTER);

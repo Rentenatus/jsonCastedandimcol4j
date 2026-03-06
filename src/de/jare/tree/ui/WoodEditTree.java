@@ -106,7 +106,7 @@ public class WoodEditTree extends JTree implements SelectionListener, ContentLis
     }
 
     @Override
-    public void onEditorSelected(Object editor, Object... payload) {
+    public void onEditorSelected(JTree editor, Object... payload) {
         if (master == null || editor != this) {
             return;
         }

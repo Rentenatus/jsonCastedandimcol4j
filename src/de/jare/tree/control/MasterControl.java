@@ -4,13 +4,13 @@
  * http://www.eclipse.org/legal/epl-v20.html
  * </copyright>
  */
-
 package de.jare.tree.control;
 
 import de.jare.tree.control.listeners.ContentListener;
 import de.jare.tree.control.listeners.FocusListener;
 import de.jare.tree.control.listeners.SelectionListener;
 import de.jare.tree.ui.WoodClipboardTree;
+import javax.swing.JTree;
 
 public class MasterControl {
 
@@ -18,46 +18,47 @@ public class MasterControl {
     private final Orator<FocusListener> focusOrator = new Orator<>();
     private final Orator<SelectionListener> selectionOrator = new Orator<>();
     private final Orator<ContentListener> contentOrator = new Orator<>();
-    
+
     private WoodClipboardTree clipboardTree;
     // welcher Editor ist aktuell aktiv (Tab-basiert)?
     private Object activeEditor; // bewusst generisch
+    private UndoManager undoMan;
 
     // Registrierung
     public void addFocusListener(FocusListener l) {
         focusOrator.addListener(l);
     }
-    
+
     public void addSelectionListener(SelectionListener l) {
         selectionOrator.addListener(l);
     }
-    
+
     public void addContentListener(ContentListener l) {
         contentOrator.addListener(l);
     }
-    
+
     public void removeFocusListener(FocusListener l) {
         focusOrator.removeListener(l);
     }
-    
+
     public void removeSelectionListener(SelectionListener l) {
         selectionOrator.removeListener(l);
     }
-    
+
     public void removeContentListener(ContentListener l) {
         contentOrator.removeListener(l);
     }
-    
+
     public void setClipboardTree(WoodClipboardTree clipboardTree) {
         this.clipboardTree = clipboardTree;
     }
-    
+
     public WoodClipboardTree getClipboardTree() {
         return clipboardTree;
     }
 
     // Vom UI (z.B. JTabbedPane) gerufen, wenn ein Tab gew?hlt wird
-    public void setActiveEditor(Object editor) {
+    public void setActiveEditor(JTree editor) {
         Object previous = this.activeEditor;
         if (previous == editor) {
             return;
@@ -83,9 +84,22 @@ public class MasterControl {
     public void fireCommand(String commandId, Object... payload) {
         contentOrator.say(l -> l.onCommand(commandId, payload));
     }
-    
+
     public Object getActiveEditor() {
         return activeEditor;
     }
-    
+
+    public UndoManager createUndoManager() {
+        if (undoMan != null) {
+            return undoMan;
+        }
+        undoMan = new UndoManager();
+        addSelectionListener(undoMan);
+        return undoMan;
+    }
+
+    public UndoManager getUndoManager() {
+        return undoMan;
+    }
+
 }

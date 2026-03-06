@@ -7,9 +7,11 @@
 
 package de.jare.tree.control.listeners;
 
+import javax.swing.JTree;
+
 public interface SelectionListener {
 
     void onNodeSelected(Object node, Object... payload);
 
-    void onEditorSelected(Object editor, Object... payload);
+    void onEditorSelected(JTree editor, Object... payload);
 }

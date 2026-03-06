@@ -64,7 +64,7 @@ public class WoodEditPopup extends JPopupMenu {
             }
 
             @Override
-            public void onEditorSelected(Object editor, Object... payload) {
+            public void onEditorSelected(JTree editor, Object... payload) {
                 // optional: Menü bei Editorwechsel anpassen
             }
         });
