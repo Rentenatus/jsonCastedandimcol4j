@@ -58,6 +58,11 @@ public final class JsonObjectData implements JsonTreeNodeData {
     }
 
     @Override
+    public JsonTreeNodeData deepCopy() {
+        return new JsonObjectData(primValue, objektInfo);
+    }
+
+    @Override
     public void sayOnRemoved(JsonTreeNodeData parent) {
         parent.onChildObjectDataRemoved(this);
     }

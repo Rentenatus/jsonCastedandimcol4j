@@ -1,4 +1,4 @@
-/* <copyright> 
+/* <copyright>
  * Copyright (c) 2025, Janusch Rentenatus. This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
@@ -10,13 +10,11 @@ import de.jare.tree.data.JsonTreeNodeData;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreePath;
 
 public class WoodClipboardTree extends JTree {
 
     private DefaultMutableTreeNode[] clipboardNodes;
-    private boolean cutMode = false;
     private WoodEditTree sourceTree;
 
     public WoodClipboardTree() {
@@ -26,28 +24,8 @@ public class WoodClipboardTree extends JTree {
         setShowsRootHandles(true);
     }
 
-    /**
-     * Setzt den Inhalt der Zwischenablage.
-     *
-     * @param nodes die originalen Knoten im Quellbaum
-     * @param cut true = Cut, false = Copy
-     * @param source der Quell-EditorTree
-     */
-    public void setClipboard(DefaultMutableTreeNode[] nodes,
-            boolean cut,
-            WoodEditTree source) {
-        this.clipboardNodes = nodes;
-        this.cutMode = cut;
-        this.sourceTree = source;
-        showClipboardContent(nodes);
-    }
-
     public DefaultMutableTreeNode[] getClipboardNodes() {
         return clipboardNodes;
-    }
-
-    public boolean isCutMode() {
-        return cutMode;
     }
 
     public WoodEditTree getSourceTree() {
@@ -56,21 +34,18 @@ public class WoodClipboardTree extends JTree {
 
     public void clearClipboard() {
         clipboardNodes = null;
-        cutMode = false;
         sourceTree = null;
         showClipboardContent(null);
     }
 
-    public void copySelection(WoodEditTree trigger, TreePath[] paths, boolean cut) {
-        sourceTree = trigger;
-        clipboardNodes = new DefaultMutableTreeNode[paths.length];
-        for (int i = 0; i < paths.length; i++) {
-            clipboardNodes[i] = (DefaultMutableTreeNode) paths[i].getLastPathComponent();
-            //(new Throwable("----------------- xxxxxxxxxxxx " + clipboardNodes[i])).printStackTrace();
+    public void copySelection(WoodEditTree trigger, TreePath[] paths) {
+        if (paths == null || paths.length == 0) {
+            clipboardNodes = null;
+            return;
         }
-        cutMode = cut;
+        sourceTree = trigger;
+        clipboardNodes = deepCopies(paths);
         showClipboardContent(clipboardNodes);
-
     }
 
     public void pasteClipboard(WoodEditTree trigger, TreePath path) {
@@ -95,23 +70,12 @@ public class WoodClipboardTree extends JTree {
             trigger.setSelectionPath(newPath);
             trigger.scrollPathToVisible(newPath);
         }
-
-        // Bei Cut: Originale entfernen
-        if (cutMode && sourceTree != null) {
-            DefaultTreeModel srcModel = (DefaultTreeModel) sourceTree.getModel();
-            for (int i = clipboardNodes.length - 1; i >= 0; i--) {
-                DefaultMutableTreeNode n = clipboardNodes[i];
-                MutableTreeNode p = (MutableTreeNode) n.getParent();
-                if (p != null) {
-                    srcModel.removeNodeFromParent(n);
-                }
-            }
-        }
-        cutMode = false;
     }
 
     /**
      * Zeigt den aktuellen Clipboard-Inhalt als Kopie im Tree an.
+     *
+     * @param nodes
      */
     public void showClipboardContent(DefaultMutableTreeNode[] nodes) {
         DefaultMutableTreeNode root = (DefaultMutableTreeNode) getModel().getRoot();
@@ -125,15 +89,6 @@ public class WoodClipboardTree extends JTree {
         if (getRowCount() > 0) {
             expandRow(0);
         }
-    }
-
-    private DefaultMutableTreeNode deepCopy(DefaultMutableTreeNode original) {
-        DefaultMutableTreeNode copy = new DefaultMutableTreeNode(original.getUserObject());
-        for (int i = 0; i < original.getChildCount(); i++) {
-            DefaultMutableTreeNode child = (DefaultMutableTreeNode) original.getChildAt(i);
-            copy.add(deepCopy(child));
-        }
-        return copy;
     }
 
     public boolean canPasteTo(JsonTreeNodeData targetData) {
@@ -152,4 +107,29 @@ public class WoodClipboardTree extends JTree {
         }
         return true;
     }
+
+    private DefaultMutableTreeNode[] deepCopies(TreePath[] paths) {
+        DefaultMutableTreeNode copies[] = new DefaultMutableTreeNode[paths.length];
+        for (int i = 0; i < paths.length; i++) {
+            final DefaultMutableTreeNode original = (DefaultMutableTreeNode) paths[i].getLastPathComponent();
+            copies[i] = deepCopy(original);
+        }
+        return copies;
+    }
+
+    private DefaultMutableTreeNode deepCopy(DefaultMutableTreeNode original) {
+        Object userObject = original.getUserObject();
+        if (userObject instanceof JsonTreeNodeData originalData) {
+            userObject = originalData.deepCopy();
+        } else {
+            userObject = String.valueOf(userObject);
+        }
+        DefaultMutableTreeNode copy = new DefaultMutableTreeNode(userObject);
+        for (int i = 0; i < original.getChildCount(); i++) {
+            DefaultMutableTreeNode child = (DefaultMutableTreeNode) original.getChildAt(i);
+            copy.add(deepCopy(child));
+        }
+        return copy;
+    }
+
 }

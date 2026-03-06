@@ -222,7 +222,19 @@ public class WoodEditTree extends JTree implements SelectionListener, ContentLis
             return;
         }
 
-        master.getClipboardTree().copySelection(this, paths, cut);
+        master.getClipboardTree().copySelection(this, paths);
+
+        // Bei Cut: Originale entfernen
+        if (cut) {
+            DefaultTreeModel srcModel = (DefaultTreeModel) getModel();
+            for (int i = paths.length - 1; i >= 0; i--) {
+                DefaultMutableTreeNode n = (DefaultMutableTreeNode) paths[i].getLastPathComponent();
+                MutableTreeNode p = (MutableTreeNode) n.getParent();
+                if (p != null) {
+                    srcModel.removeNodeFromParent(n);
+                }
+            }
+        }
     }
 
     private void pasteClipboard() {
@@ -257,15 +269,6 @@ public class WoodEditTree extends JTree implements SelectionListener, ContentLis
                     = (DefaultMutableTreeNode) getLastSelectedPathComponent();
             master.fireSelection(sel, this);
         }
-    }
-
-    private DefaultMutableTreeNode deepCopy(DefaultMutableTreeNode original) {
-        DefaultMutableTreeNode copy = new DefaultMutableTreeNode(original.getUserObject());
-        for (int i = 0; i < original.getChildCount(); i++) {
-            DefaultMutableTreeNode child = (DefaultMutableTreeNode) original.getChildAt(i);
-            copy.add(deepCopy(child));
-        }
-        return copy;
     }
 
 }

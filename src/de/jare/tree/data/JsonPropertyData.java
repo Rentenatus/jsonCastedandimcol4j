@@ -71,6 +71,11 @@ public final class JsonPropertyData implements JsonTreeNodeData {
     }
 
     @Override
+    public JsonTreeNodeData deepCopy() {
+        return new JsonPropertyData(propName, type, primValue);
+    }
+
+    @Override
     public void sayOnRemoved(JsonTreeNodeData parent) {
         parent.onChilPropertyDataRemoved(this);
     }

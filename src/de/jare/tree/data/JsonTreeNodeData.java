@@ -15,6 +15,8 @@ public sealed interface JsonTreeNodeData permits JsonObjectData, JsonPropertyDat
 
     JsonTreeNodeData createNeighbor(String aName);
 
+    JsonTreeNodeData deepCopy();
+
     void sayOnRemoved(JsonTreeNodeData parent);
 
     default void onChildObjectDataRemoved(JsonObjectData child) {
