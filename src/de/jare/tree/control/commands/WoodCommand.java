@@ -6,6 +6,10 @@
  */
 package de.jare.tree.control.commands;
 
+import de.jare.tree.data.JsonTreeNodeData;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreeModel;
+
 /**
  * Represents a single undoable command in the tree editor.
  * <p>
@@ -18,21 +22,72 @@ public interface WoodCommand {
 
     /**
      * Executes the command, applying its change to the model.
+     *
+     * @param model
      */
-    void execute();
+    void execute(TreeModel model);
 
     /**
      * Undoes the command, restoring the model to the state before
      * {@link #execute()} was called.
+     *
+     * @param model
      */
-    void undo();
+    void undo(TreeModel model);
+
+    /**
+     * Human-readable description details for UI (e.g. menu/tool tip).
+     *
+     * @return short description of this command
+     */
+    default String getDescription() {
+        return "";
+    }
 
     /**
      * Human-readable description for UI (e.g. menu/tool tip).
      *
      * @return short description of this command
      */
-    default String getDescription() {
+    default String getCommandText() {
         return getClass().getSimpleName();
+    }
+
+    default DefaultMutableTreeNode findNodeByEditId(TreeModel model, long id) {
+        Object root = model.getRoot();
+        if (!(root instanceof DefaultMutableTreeNode dmtn)) {
+            return null;
+        }
+        return findNodeByEditId(dmtn, id);
+    }
+
+    default DefaultMutableTreeNode findNodeByEditId(DefaultMutableTreeNode node, long id) {
+        Object uo = node.getUserObject();
+        if (uo instanceof JsonTreeNodeData data && data.getEditId() == id) {
+            return node;
+        }
+        for (int i = 0; i < node.getChildCount(); i++) {
+            DefaultMutableTreeNode child = (DefaultMutableTreeNode) node.getChildAt(i);
+            DefaultMutableTreeNode found = findNodeByEditId(child, id);
+            if (found != null) {
+                return found;
+            }
+        }
+        return null;
+    }
+
+    default DefaultMutableTreeNode deepCopy(DefaultMutableTreeNode original) {
+        Object uo = original.getUserObject();
+        if (uo instanceof JsonTreeNodeData data) {
+            uo = data.deepCopy();
+        } else {
+            uo = String.valueOf(uo);
+        }
+        DefaultMutableTreeNode copy = new DefaultMutableTreeNode(uo);
+        for (int i = 0; i < original.getChildCount(); i++) {
+            DefaultMutableTreeNode child = (DefaultMutableTreeNode) original.getChildAt(i);
+            copy.add(deepCopy(child));
+        }
+        return copy;
     }
 }

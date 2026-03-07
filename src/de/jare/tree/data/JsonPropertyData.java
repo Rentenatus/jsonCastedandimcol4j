@@ -13,20 +13,28 @@ import java.awt.Color;
  */
 public final class JsonPropertyData implements JsonTreeNodeData {
 
+    private final long editId;
     private String propName;
     private String type; // "string", "number", "object", "array", ...
     private String primValue; // "string", "number", aber kein Object, Array, ...
 
-    public JsonPropertyData(String propName, String type, String primValue) {
+    protected JsonPropertyData(long editId, String propName, String type, String primValue) {
+        this.editId = editId;
         this.propName = propName;
         this.type = type;
         this.primValue = primValue;
     }
 
     public JsonPropertyData(String propName) {
+        this.editId = IdGenerator.EDIT_ID_GENERATOR.nextId();
         this.propName = propName;
         this.type = "";
         this.primValue = null;
+    }
+
+    @Override
+    public long getEditId() {
+        return editId;
     }
 
     public String getPropName() {
@@ -60,7 +68,7 @@ public final class JsonPropertyData implements JsonTreeNodeData {
 
     @Override
     public JsonTreeNodeData createChild(String aName) {
-        JsonObjectData ret = new JsonObjectData(primValue, aName);
+        JsonObjectData ret = new JsonObjectData(IdGenerator.EDIT_ID_GENERATOR.nextId(), primValue, aName);
         primValue = null;
         return ret;
     }
@@ -72,7 +80,7 @@ public final class JsonPropertyData implements JsonTreeNodeData {
 
     @Override
     public JsonTreeNodeData deepCopy() {
-        return new JsonPropertyData(propName, type, primValue);
+        return new JsonPropertyData(editId, propName, type, primValue);
     }
 
     @Override

@@ -13,17 +13,25 @@ import java.awt.Color;
  */
 public final class JsonObjectData implements JsonTreeNodeData {
 
+    private final long editId;
     private String objektInfo; // z.B. "root" 
-    private String primValue; // z.B. "root" 
+    private String primValue; // z.B. "root"  
 
     public JsonObjectData(String objektInfo) {
+        this.editId = IdGenerator.EDIT_ID_GENERATOR.nextId();
         this.objektInfo = objektInfo;
         this.primValue = null;
     }
 
-    public JsonObjectData(String primValue, String objektInfo) {
+    protected JsonObjectData(long editId, String primValue, String objektInfo) {
+        this.editId = editId;
         this.objektInfo = objektInfo;
         this.primValue = primValue;
+    }
+
+    @Override
+    public long getEditId() {
+        return editId;
     }
 
     public String getObjektInfo() {
@@ -59,7 +67,7 @@ public final class JsonObjectData implements JsonTreeNodeData {
 
     @Override
     public JsonTreeNodeData deepCopy() {
-        return new JsonObjectData(primValue, objektInfo);
+        return new JsonObjectData(editId, primValue, objektInfo);
     }
 
     @Override

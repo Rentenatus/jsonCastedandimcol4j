@@ -18,6 +18,8 @@ import java.awt.Color;
  */
 public sealed interface JsonTreeNodeData permits JsonObjectData, JsonPropertyData {
 
+    long getEditId();
+
     /**
      * Creates a new child node that is structurally valid for this node and
      * uses the given name.
