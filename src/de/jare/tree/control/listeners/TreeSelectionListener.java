@@ -9,7 +9,7 @@ package de.jare.tree.control.listeners;
 
 import javax.swing.JTree;
 
-public interface SelectionListener {
+public interface TreeSelectionListener {
 
     void onNodeSelected(Object node, Object... payload);
 

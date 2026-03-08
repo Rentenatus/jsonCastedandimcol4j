@@ -9,14 +9,14 @@ package de.jare.tree.ui;
 import de.jare.tree.control.MasterControl;
 import de.jare.tree.control.listeners.ContentListener;
 import de.jare.tree.control.listeners.FocusListener;
-import de.jare.tree.control.listeners.SelectionListener;
 import de.jare.tree.data.JsonObjectData;
 import de.jare.tree.data.JsonTreeNodeData;
 
 import javax.swing.*;
 import javax.swing.tree.*;
+import de.jare.tree.control.listeners.TreeSelectionListener;
 
-public class WoodEditTree extends JTree implements SelectionListener, ContentListener, FocusListener {
+public class WoodEditTree extends JTree implements TreeSelectionListener, ContentListener, FocusListener {
 
     private final MasterControl master;
 
@@ -59,9 +59,9 @@ public class WoodEditTree extends JTree implements SelectionListener, ContentLis
         getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
 
         if (master != null) {
-            master.addSelectionListener(this);
-            master.addContentListener(this);
-            master.addFocusListener(this);
+            master.addSelectionListener(1, this);
+            master.addContentListener(1, this);
+            master.addFocusListener(1, this);
         }
     }
 

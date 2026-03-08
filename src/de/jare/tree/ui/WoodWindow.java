@@ -49,31 +49,8 @@ public class WoodWindow extends JFrame {
         centerTabs.addTab("Tree Editor 2", new JScrollPane(editorTree2));
 
         // obere Toolbar ueber den Editor-Tabs
-        JPanel upperToolbar = new JPanel(new FlowLayout(FlowLayout.LEFT));
-
-        // Icons laden
-        Icon undoIcon = new ImageIcon(getClass().getResource("/icons/undo.png"));
-        Icon redoIcon = new ImageIcon(getClass().getResource("/icons/redo.png"));
-
-        // Undo-Button
-        JButton btnUndo = new JButton(undoIcon);
-        btnUndo.setText(null);
-        btnUndo.setBorderPainted(true);
-        btnUndo.setContentAreaFilled(false);
-        btnUndo.setFocusPainted(false);
-        btnUndo.setOpaque(false);
-
-        // Redo-Button
-        JButton btnRedo = new JButton(redoIcon);
-        btnRedo.setText(null);
-        btnRedo.setBorderPainted(true);
-        btnRedo.setContentAreaFilled(false);
-        btnRedo.setFocusPainted(false);
-        btnRedo.setOpaque(false);
-
-        // TODO: ActionListener für Undo/Redo ergänzen
-        upperToolbar.add(btnUndo);
-        upperToolbar.add(btnRedo);
+        // obere Toolbar �ber den Editor-Tabs
+        JPanel upperToolbar = new WoodUpperToolbar(master, undoMan);
 
         JPanel centerPanel = new JPanel(new BorderLayout());
         centerPanel.add(upperToolbar, BorderLayout.NORTH);

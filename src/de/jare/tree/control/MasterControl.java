@@ -8,15 +8,15 @@ package de.jare.tree.control;
 
 import de.jare.tree.control.listeners.ContentListener;
 import de.jare.tree.control.listeners.FocusListener;
-import de.jare.tree.control.listeners.SelectionListener;
 import de.jare.tree.ui.WoodClipboardTree;
 import javax.swing.JTree;
+import de.jare.tree.control.listeners.TreeSelectionListener;
 
 public class MasterControl {
 
     // Channels
     private final Orator<FocusListener> focusOrator = new Orator<>();
-    private final Orator<SelectionListener> selectionOrator = new Orator<>();
+    private final Orator<TreeSelectionListener> selectionOrator = new Orator<>();
     private final Orator<ContentListener> contentOrator = new Orator<>();
 
     private WoodClipboardTree clipboardTree;
@@ -29,19 +29,31 @@ public class MasterControl {
         focusOrator.addListener(l);
     }
 
-    public void addSelectionListener(SelectionListener l) {
+    public void addFocusListener(int level, FocusListener l) {
+        focusOrator.addListener(level, l);
+    }
+
+    public void addSelectionListener(TreeSelectionListener l) {
         selectionOrator.addListener(l);
+    }
+
+    public void addSelectionListener(int level, TreeSelectionListener l) {
+        selectionOrator.addListener(level, l);
     }
 
     public void addContentListener(ContentListener l) {
         contentOrator.addListener(l);
     }
 
+    public void addContentListener(int level, ContentListener l) {
+        contentOrator.addListener(level, l);
+    }
+
     public void removeFocusListener(FocusListener l) {
         focusOrator.removeListener(l);
     }
 
-    public void removeSelectionListener(SelectionListener l) {
+    public void removeSelectionListener(TreeSelectionListener l) {
         selectionOrator.removeListener(l);
     }
 
@@ -94,7 +106,7 @@ public class MasterControl {
             return undoMan;
         }
         undoMan = new UndoManager();
-        addSelectionListener(undoMan);
+        addSelectionListener(6, undoMan);
         return undoMan;
     }
 

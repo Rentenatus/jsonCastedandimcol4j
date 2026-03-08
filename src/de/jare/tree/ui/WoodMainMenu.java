@@ -88,7 +88,7 @@ public class WoodMainMenu extends JMenuBar {
         add(editMenu);
         add(infoMenu);
 
-        master.addSelectionListener(new de.jare.tree.control.listeners.SelectionListener() {
+        master.addSelectionListener(7, new de.jare.tree.control.listeners.TreeSelectionListener() {
             @Override
             public void onNodeSelected(Object node, Object... payload) {
                 boolean rootSelected = false;

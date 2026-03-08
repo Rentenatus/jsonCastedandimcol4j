@@ -42,7 +42,7 @@ public class WoodEditPopup extends JPopupMenu {
         add(cutItem);
         add(pasteItem);
 
-        master.addSelectionListener(new de.jare.tree.control.listeners.SelectionListener() {
+        master.addSelectionListener(8, new de.jare.tree.control.listeners.TreeSelectionListener() {
             @Override
             public void onNodeSelected(Object node, Object... payload) {
                 boolean rootSelected = false;

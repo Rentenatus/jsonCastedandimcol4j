@@ -1,20 +1,20 @@
 package de.jare.tree.control;
 
 import de.jare.tree.control.commands.WoodCommand;
-import de.jare.tree.control.listeners.SelectionListener;
 
 import javax.swing.JTree;
 import javax.swing.tree.TreeModel;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import de.jare.tree.control.listeners.TreeSelectionListener;
 
 /**
  * Global undo/redo dispatcher that keeps one {@link UndoManagerModel} per
  * {@link TreeModel} and delegates execute/undo/redo to the manager of the
  * currently active model.
  */
-public class UndoManager implements SelectionListener {
+public class UndoManager implements TreeSelectionListener {
 
     private final List<UndoManagerModel> managers = new ArrayList<>();
     private UndoManagerModel activeManager;
@@ -44,11 +44,11 @@ public class UndoManager implements SelectionListener {
     }
 
     /**
-     * Executes the given command on the active model.
+     * Adds the given command on the active model.
      */
-    public void executeCommand(WoodCommand command) {
+    public void pushCommand(WoodCommand command) {
         if (activeManager != null) {
-            activeManager.executeCommand(command);
+            activeManager.pushCommand(command);
         }
     }
 

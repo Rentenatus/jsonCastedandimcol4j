@@ -7,11 +7,11 @@
 
 package de.jare.tree.ui;
 
-import de.jare.tree.control.listeners.SelectionListener;
 import javax.swing.JTree;
 import javax.swing.table.AbstractTableModel;
+import de.jare.tree.control.listeners.TreeSelectionListener;
 
-public class PropertyTableModel extends AbstractTableModel implements SelectionListener {
+public class PropertyTableModel extends AbstractTableModel implements TreeSelectionListener {
 
     private final String[] columnNames = {"Name", "Value", "Typ"};
     private Object[][] data = {

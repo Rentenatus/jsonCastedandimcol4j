@@ -38,16 +38,15 @@ public class UndoManagerModel {
     }
 
     /**
-     * Executes the given command and pushes it onto the undo stack. The redo
-     * stack is cleared.
+     * Add the given command and pushes it onto the undo stack. The redo stack
+     * is cleared.
      *
      * @param command command to execute; must not be {@code null}
      */
-    public void executeCommand(WoodCommand command) {
+    public void pushCommand(WoodCommand command) {
         if (command == null || getTreeModel() == null) {
             return;
         }
-        command.execute();
         undoStack.push(command);
         redoStack.clear();
         trimToLimit();
@@ -57,11 +56,12 @@ public class UndoManagerModel {
      * Performs an undo operation if possible.
      */
     public void undo() {
-        if (!canUndo()) {
+        TreeModel lokalModel = getTreeModel();
+        if (!canUndo(lokalModel)) {
             return;
         }
         WoodCommand cmd = undoStack.pop();
-        cmd.undo();
+        cmd.undo(lokalModel);
         redoStack.push(cmd);
     }
 
@@ -69,12 +69,33 @@ public class UndoManagerModel {
      * Performs a redo operation if possible.
      */
     public void redo() {
-        if (!canRedo()) {
+        TreeModel lokalModel = getTreeModel();
+        if (!canRedo(lokalModel)) {
             return;
         }
         WoodCommand cmd = redoStack.pop();
-        cmd.execute();
+        cmd.execute(lokalModel);
         undoStack.push(cmd);
+    }
+
+    /**
+     * Returns whether an undo operation is currently available.
+     *
+     * @param lokalModel
+     * @return {@code true} if undo can be performed
+     */
+    public boolean canUndo(TreeModel lokalModel) {
+        return !undoStack.isEmpty() && lokalModel != null;
+    }
+
+    /**
+     * Returns whether a redo operation is currently available.
+     *
+     * @param lokalModel
+     * @return {@code true} if redo can be performed
+     */
+    public boolean canRedo(TreeModel lokalModel) {
+        return !redoStack.isEmpty() && lokalModel != null;
     }
 
     /**
