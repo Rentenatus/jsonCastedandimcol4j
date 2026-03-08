@@ -41,7 +41,7 @@ public class WoodEditTree extends JTree implements TreeSelectionListener, Conten
         setShowsRootHandles(true);
         setCellRenderer(new JsonTreeCellRenderer());
         setEditable(true);
-        setCellEditor(new JsonTreeCellEditor());
+        setCellEditor(new JsonTreeCellEditor(master.getUndoManager()));
 
         // eigene Selektion an MasterControl melden, aber nur wenn dieser Tree aktiv ist
         addTreeSelectionListener(e -> {
@@ -71,7 +71,7 @@ public class WoodEditTree extends JTree implements TreeSelectionListener, Conten
         if (master != null && master.getActiveEditor() == this) {
             DefaultMutableTreeNode node
                     = (DefaultMutableTreeNode) getLastSelectedPathComponent();
-            master.fireSelection(node, this);
+            master.fireSelection(node, this, false);
         }
     }
 
@@ -83,7 +83,7 @@ public class WoodEditTree extends JTree implements TreeSelectionListener, Conten
     }
 
     @Override
-    public void onNodeSelected(Object node, Object... payload) {
+    public void onNodeSelected(Object node, Object trigger, boolean rootSelected) {
         // Nur reagieren, wenn dieser Editor aktuell aktiv ist
         if (master != null && master.getActiveEditor() != this) {
             return;
@@ -98,7 +98,7 @@ public class WoodEditTree extends JTree implements TreeSelectionListener, Conten
         TreePath path = findPath(root, dmtn);
         if (path != null) {
             scrollPathToVisible(path);
-            if (payload != null && payload.length > 0 && payload[0] == this) {
+            if (trigger == this) {
                 return; // Selbst ausgeloest
             }
             setSelectionPath(path);
@@ -106,12 +106,12 @@ public class WoodEditTree extends JTree implements TreeSelectionListener, Conten
     }
 
     @Override
-    public void onEditorSelected(JTree editor, Object... payload) {
+    public void onEditorSelected(JTree editor, Object trigger) {
         if (master == null || editor != this) {
             return;
         }
         TreePath path = getSelectionPath();
-        master.fireSelection(path == null ? null : path.getLastPathComponent(), this);
+        master.fireSelection(path == null ? null : path.getLastPathComponent(), this, false);
     }
 
     private TreePath findPath(DefaultMutableTreeNode root, DefaultMutableTreeNode target) {
@@ -129,7 +129,7 @@ public class WoodEditTree extends JTree implements TreeSelectionListener, Conten
     }
 
     @Override
-    public void onCommand(String commandId, Object... payload) {
+    public void onCommand(String commandId, Object trigger) {
         if (master != null && master.getActiveEditor() != this) {
             return;
         }
@@ -267,7 +267,7 @@ public class WoodEditTree extends JTree implements TreeSelectionListener, Conten
         if (master != null && master.getActiveEditor() == this) {
             DefaultMutableTreeNode sel
                     = (DefaultMutableTreeNode) getLastSelectedPathComponent();
-            master.fireSelection(sel, this);
+            master.fireSelection(sel, this, false);
         }
     }
 

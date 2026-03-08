@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import de.jare.tree.control.listeners.TreeSelectionListener;
+import de.jare.tree.control.listeners.UndoRedoListener;
 
 /**
  * Global undo/redo dispatcher that keeps one {@link UndoManagerModel} per
@@ -18,15 +19,24 @@ public class UndoManager implements TreeSelectionListener {
 
     private final List<UndoManagerModel> managers = new ArrayList<>();
     private UndoManagerModel activeManager;
+    private final Orator<UndoRedoListener> undoRedoOrator = new Orator<>();
 
     @Override
-    public void onNodeSelected(Object node, Object... payload) {
+    public void onNodeSelected(Object node, Object trigger, boolean rootSelected) {
         // NoOp
     }
 
     @Override
-    public void onEditorSelected(JTree editor, Object... payload) {
+    public void onEditorSelected(JTree editor, Object trigger) {
         setActiveModel(editor != null ? editor.getModel() : null);
+    }
+
+    public void addUndoRedoListener(int level, UndoRedoListener l) {
+        undoRedoOrator.addListener(level, l);
+    }
+
+    public void removeUndoRedoListener(UndoRedoListener l) {
+        undoRedoOrator.removeListener(l);
     }
 
     /**
@@ -45,10 +55,13 @@ public class UndoManager implements TreeSelectionListener {
 
     /**
      * Adds the given command on the active model.
+     *
+     * @param command
      */
     public void pushCommand(WoodCommand command) {
         if (activeManager != null) {
             activeManager.pushCommand(command);
+            undoRedoOrator.say(l -> l.onAddCommand(activeManager.getTreeModel(), command));
         }
     }
 
@@ -57,7 +70,10 @@ public class UndoManager implements TreeSelectionListener {
      */
     public void undo() {
         if (activeManager != null) {
-            activeManager.undo();
+            WoodCommand cmd = activeManager.undo();
+            if (cmd != null) {
+                undoRedoOrator.say(l -> l.onUndo(activeManager.getTreeModel(), cmd));
+            }
         }
     }
 
@@ -66,7 +82,10 @@ public class UndoManager implements TreeSelectionListener {
      */
     public void redo() {
         if (activeManager != null) {
-            activeManager.redo();
+            WoodCommand cmd = activeManager.redo();
+            if (cmd != null) {
+                undoRedoOrator.say(l -> l.onRedo(activeManager.getTreeModel(), cmd));
+            }
         }
     }
 
@@ -84,6 +103,7 @@ public class UndoManager implements TreeSelectionListener {
     public void clearActive() {
         if (activeManager != null) {
             activeManager.clear();
+            undoRedoOrator.say(l -> l.onClear(activeManager.getTreeModel()));
         }
     }
 

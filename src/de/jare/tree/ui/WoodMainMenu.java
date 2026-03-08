@@ -61,9 +61,9 @@ public class WoodMainMenu extends JMenuBar {
         JMenuItem deleteNodeItem = new JMenuItem("Node löschen");
         JMenuItem renameNodeItem = new JMenuItem("Node umbenennen");
 
-        addNodeItem.addActionListener(e -> master.fireCommand("edit.addNode"));
-        deleteNodeItem.addActionListener(e -> master.fireCommand("edit.deleteNode"));
-        renameNodeItem.addActionListener(e -> master.fireCommand("edit.renameNode"));
+        addNodeItem.addActionListener(e -> master.fireCommand("edit.addNode", this));
+        deleteNodeItem.addActionListener(e -> master.fireCommand("edit.deleteNode", this));
+        renameNodeItem.addActionListener(e -> master.fireCommand("edit.renameNode", this));
 
         editMenu.add(addNodeItem);
         editMenu.add(deleteNodeItem);
@@ -90,12 +90,7 @@ public class WoodMainMenu extends JMenuBar {
 
         master.addSelectionListener(7, new de.jare.tree.control.listeners.TreeSelectionListener() {
             @Override
-            public void onNodeSelected(Object node, Object... payload) {
-                boolean rootSelected = false;
-                if (payload != null && payload.length > 1 && payload[1] instanceof Boolean b) {
-                    rootSelected = b;
-                }
-
+            public void onNodeSelected(Object node, Object trigger, boolean rootSelected) {
                 boolean enableCutDelete = !rootSelected && node instanceof DefaultMutableTreeNode;
                 deleteNodeItem.setEnabled(enableCutDelete);
                 cutItem.setEnabled(enableCutDelete);
@@ -111,7 +106,7 @@ public class WoodMainMenu extends JMenuBar {
             }
 
             @Override
-            public void onEditorSelected(JTree editor, Object... payload) {
+            public void onEditorSelected(JTree editor, Object trigger) {
                 // hier könntest du bei Editorwechsel ggf. alles disablen,
                 // wenn kein aktiver JSON-Editor offen ist
             }

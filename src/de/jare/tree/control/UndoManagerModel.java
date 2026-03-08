@@ -54,28 +54,34 @@ public class UndoManagerModel {
 
     /**
      * Performs an undo operation if possible.
+     *
+     * @return
      */
-    public void undo() {
+    public WoodCommand undo() {
         TreeModel lokalModel = getTreeModel();
         if (!canUndo(lokalModel)) {
-            return;
+            return null;
         }
         WoodCommand cmd = undoStack.pop();
         cmd.undo(lokalModel);
         redoStack.push(cmd);
+        return cmd;
     }
 
     /**
      * Performs a redo operation if possible.
+     *
+     * @return
      */
-    public void redo() {
+    public WoodCommand redo() {
         TreeModel lokalModel = getTreeModel();
         if (!canRedo(lokalModel)) {
-            return;
+            return null;
         }
         WoodCommand cmd = redoStack.pop();
         cmd.execute(lokalModel);
         undoStack.push(cmd);
+        return cmd;
     }
 
     /**

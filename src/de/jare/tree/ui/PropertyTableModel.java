@@ -4,7 +4,6 @@
  * http://www.eclipse.org/legal/epl-v20.html
  * </copyright>
  */
-
 package de.jare.tree.ui;
 
 import javax.swing.JTree;
@@ -53,12 +52,12 @@ public class PropertyTableModel extends AbstractTableModel implements TreeSelect
     }
 
     @Override
-    public void onNodeSelected(Object node, Object... payload) {
+    public void onNodeSelected(Object node, Object trigger, boolean rootSelected) {
         updateProperties(node);
     }
 
     @Override
-    public void onEditorSelected(JTree editor, Object... payload) {
+    public void onEditorSelected(JTree editor, Object trigger) {
         // NoOp
     }
 

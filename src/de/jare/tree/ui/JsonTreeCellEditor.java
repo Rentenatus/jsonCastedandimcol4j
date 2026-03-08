@@ -4,9 +4,11 @@
  * http://www.eclipse.org/legal/epl-v20.html
  * </copyright>
  */
-
 package de.jare.tree.ui;
 
+import de.jare.tree.control.UndoManager;
+import de.jare.tree.control.commands.WoodCommand;
+import de.jare.tree.control.commands.WoodCommandEditNodeData;
 import de.jare.tree.data.JsonTreeNodeData;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -23,10 +25,12 @@ public class JsonTreeCellEditor extends AbstractCellEditor implements TreeCellEd
 
     private final JTextField textField = new JTextField();
     private JsonTreeNodeData currentData;
+    private final UndoManager undoMan;
 
-    public JsonTreeCellEditor() {
+    public JsonTreeCellEditor(UndoManager undoMan) {
         // Optional: Grundspaltenzahl, falls Metrics noch nicht da sind
         textField.setColumns(10);
+        this.undoMan = undoMan;
 
         textField.getDocument().addDocumentListener(new DocumentListener() {
             @Override
@@ -92,10 +96,18 @@ public class JsonTreeCellEditor extends AbstractCellEditor implements TreeCellEd
 
     @Override
     public Object getCellEditorValue() {
-        if (currentData != null) {
-            currentData.setEditText(textField.getText());
-            return currentData;
-        }
+        updateEditedObject();
         return textField.getText();
     }
+
+    protected void updateEditedObject() {
+        if (currentData == null || currentData.getEditText() != null && currentData.getEditText().equals(textField.getText())) {
+            return;
+        }
+        JsonTreeNodeData oldData = currentData.deepCopy();
+        currentData.setEditText(textField.getText());
+        WoodCommand command = new WoodCommandEditNodeData(currentData, oldData, currentData);
+        undoMan.pushCommand(command);
+    }
+
 }

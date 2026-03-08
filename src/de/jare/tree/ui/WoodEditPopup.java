@@ -21,9 +21,9 @@ public class WoodEditPopup extends JPopupMenu {
         JMenuItem deleteNodeItem = new JMenuItem("Node lÃ¶schen");
         JMenuItem renameNodeItem = new JMenuItem("Node umbenennen");
 
-        addNodeItem.addActionListener(e -> master.fireCommand("edit.addNode"));
-        deleteNodeItem.addActionListener(e -> master.fireCommand("edit.deleteNode"));
-        renameNodeItem.addActionListener(e -> master.fireCommand("edit.renameNode"));
+        addNodeItem.addActionListener(e -> master.fireCommand("edit.addNode", this));
+        deleteNodeItem.addActionListener(e -> master.fireCommand("edit.deleteNode", this));
+        renameNodeItem.addActionListener(e -> master.fireCommand("edit.renameNode", this));
 
         add(addNodeItem);
         add(deleteNodeItem);
@@ -44,11 +44,7 @@ public class WoodEditPopup extends JPopupMenu {
 
         master.addSelectionListener(8, new de.jare.tree.control.listeners.TreeSelectionListener() {
             @Override
-            public void onNodeSelected(Object node, Object... payload) {
-                boolean rootSelected = false;
-                if (payload != null && payload.length > 1 && payload[1] instanceof Boolean b) {
-                    rootSelected = b;
-                }
+            public void onNodeSelected(Object node, Object trigger, boolean rootSelected) {
                 boolean enableCutDelete = !rootSelected && node != null;
                 deleteNodeItem.setEnabled(enableCutDelete);
                 cutItem.setEnabled(enableCutDelete);
@@ -64,7 +60,7 @@ public class WoodEditPopup extends JPopupMenu {
             }
 
             @Override
-            public void onEditorSelected(JTree editor, Object... payload) {
+            public void onEditorSelected(JTree editor, Object trigger) {
                 // optional: Menü bei Editorwechsel anpassen
             }
         });

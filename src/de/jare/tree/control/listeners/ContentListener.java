@@ -4,10 +4,9 @@
  * http://www.eclipse.org/legal/epl-v20.html
  * </copyright>
  */
-
 package de.jare.tree.control.listeners;
 
 public interface ContentListener {
 
-    void onCommand(String commandId, Object... payload);
+    void onCommand(String commandId, Object trigger);
 }

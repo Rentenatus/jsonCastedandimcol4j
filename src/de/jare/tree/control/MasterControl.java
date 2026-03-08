@@ -14,6 +14,11 @@ import de.jare.tree.control.listeners.TreeSelectionListener;
 
 public class MasterControl {
 
+    public MasterControl() {
+        this.undoMan = new UndoManager();
+        addSelectionListener(6, this.undoMan);
+    }
+
     // Channels
     private final Orator<FocusListener> focusOrator = new Orator<>();
     private final Orator<TreeSelectionListener> selectionOrator = new Orator<>();
@@ -70,7 +75,7 @@ public class MasterControl {
     }
 
     // Vom UI (z.B. JTabbedPane) gerufen, wenn ein Tab gew?hlt wird
-    public void setActiveEditor(JTree editor) {
+    public void setActiveEditor(JTree editor, Object trigger) {
         Object previous = this.activeEditor;
         if (previous == editor) {
             return;
@@ -84,30 +89,21 @@ public class MasterControl {
         if (editor != null) {
             focusOrator.say(l -> l.onFocusGained());
         }
-        selectionOrator.say(l -> l.onEditorSelected(editor));
+        selectionOrator.say(l -> l.onEditorSelected(editor, trigger));
     }
 
     // Vom aktiven Editor gerufen, wenn sich die Node-Selektion ?ndert
-    public void fireSelection(Object node, Object... payload) {
-        selectionOrator.say(l -> l.onNodeSelected(node, payload));
+    public void fireSelection(Object node, Object trigger, boolean rootSelected) {
+        selectionOrator.say(l -> l.onNodeSelected(node, trigger, rootSelected));
     }
 
     // Vom Men? / KI / Toolbar gerufen
-    public void fireCommand(String commandId, Object... payload) {
-        contentOrator.say(l -> l.onCommand(commandId, payload));
+    public void fireCommand(String commandId, Object trigger) {
+        contentOrator.say(l -> l.onCommand(commandId, trigger));
     }
 
     public Object getActiveEditor() {
         return activeEditor;
-    }
-
-    public UndoManager createUndoManager() {
-        if (undoMan != null) {
-            return undoMan;
-        }
-        undoMan = new UndoManager();
-        addSelectionListener(6, undoMan);
-        return undoMan;
     }
 
     public UndoManager getUndoManager() {

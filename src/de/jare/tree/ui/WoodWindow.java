@@ -7,21 +7,18 @@
 package de.jare.tree.ui;
 
 import de.jare.tree.control.MasterControl;
-import de.jare.tree.control.UndoManager;
 import java.awt.*;
 import javax.swing.*;
 
 public class WoodWindow extends JFrame {
 
     private final MasterControl master;
-    private final UndoManager undoMan;
     private final JTabbedPane centerTabs;
     private final WoodEditTree editorTree1;
     private final WoodEditTree editorTree2;
 
     public WoodWindow() {
         master = new MasterControl();
-        undoMan = master.createUndoManager();
 
         setTitle("Tree Editor");
         setSize(1200, 800);
@@ -50,7 +47,7 @@ public class WoodWindow extends JFrame {
 
         // obere Toolbar ueber den Editor-Tabs
         // obere Toolbar �ber den Editor-Tabs
-        JPanel upperToolbar = new WoodUpperToolbar(master, undoMan);
+        JPanel upperToolbar = new WoodUpperToolbar(master);
 
         JPanel centerPanel = new JPanel(new BorderLayout());
         centerPanel.add(upperToolbar, BorderLayout.NORTH);
@@ -69,10 +66,10 @@ public class WoodWindow extends JFrame {
                 default ->
                     null;
             };
-            master.setActiveEditor(editor);
+            master.setActiveEditor(editor, this);
         });
         // initial
-        master.setActiveEditor(editorTree1);
+        master.setActiveEditor(editorTree1, master);
 
         WoodEditPopup popup = new WoodEditPopup(master);
         WoodEditPopup.installOn(editorTree1, popup);

@@ -4,14 +4,13 @@
  * http://www.eclipse.org/legal/epl-v20.html
  * </copyright>
  */
-
 package de.jare.tree.control.listeners;
 
 import javax.swing.JTree;
 
 public interface TreeSelectionListener {
 
-    void onNodeSelected(Object node, Object... payload);
+    void onNodeSelected(Object node, Object trigger, boolean rootSelected);
 
-    void onEditorSelected(JTree editor, Object... payload);
+    void onEditorSelected(JTree editor, Object trigger);
 }

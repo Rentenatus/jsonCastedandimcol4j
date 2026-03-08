@@ -18,10 +18,10 @@ public class WoodUpperToolbar extends JPanel implements ContentListener, TreeSel
     private final JButton btnUndo;
     private final JButton btnRedo;
 
-    public WoodUpperToolbar(MasterControl master, UndoManager undoMan) {
+    public WoodUpperToolbar(MasterControl master) {
         super(new FlowLayout(FlowLayout.LEFT));
         this.master = master;
-        this.undoMan = undoMan;
+        this.undoMan = master.getUndoManager();
 
         Icon undoIcon = new ImageIcon(getClass().getResource("/icons/undo.png"));
         Icon redoIcon = new ImageIcon(getClass().getResource("/icons/redo.png"));
@@ -66,17 +66,17 @@ public class WoodUpperToolbar extends JPanel implements ContentListener, TreeSel
     }
 
     @Override
-    public void onCommand(String commandId, Object... payload) {
+    public void onCommand(String commandId, Object trigger) {
         updateButtons();
     }
 
     @Override
-    public void onNodeSelected(Object node, Object... payload) {
+    public void onNodeSelected(Object node, Object trigger, boolean rootSelected) {
         updateButtons();
     }
 
     @Override
-    public void onEditorSelected(JTree editor, Object... payload) {
+    public void onEditorSelected(JTree editor, Object trigger) {
         updateButtons();
     }
 }
