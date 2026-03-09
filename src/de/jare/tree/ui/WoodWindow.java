@@ -79,6 +79,7 @@ public class WoodWindow extends JFrame {
         JTabbedPane bottomTabs = new JTabbedPane();
         bottomTabs.addTab("Properties", createPropertiesPanel());
         bottomTabs.addTab("Clipboard", createClipboardPanel());
+        bottomTabs.addTab("Undo", createUndoPanel());
         bottomTabs.addTab("KI Assistant", createKIAssistant());
 
         JPanel bottomToolbar = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -119,6 +120,13 @@ public class WoodWindow extends JFrame {
 
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(new JScrollPane(propertyTable), BorderLayout.CENTER);
+        return panel;
+    }
+
+    private WoodUndoPanel panel;
+
+    private JPanel createUndoPanel() {
+        panel = new WoodUndoPanel(master);
         return panel;
     }
 

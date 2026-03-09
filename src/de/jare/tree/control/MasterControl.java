@@ -11,6 +11,7 @@ import de.jare.tree.control.listeners.FocusListener;
 import de.jare.tree.ui.WoodClipboardTree;
 import javax.swing.JTree;
 import de.jare.tree.control.listeners.TreeSelectionListener;
+import de.jare.tree.control.listeners.UndoRedoListener;
 
 public class MasterControl {
 
@@ -54,6 +55,14 @@ public class MasterControl {
         contentOrator.addListener(level, l);
     }
 
+    public void addUndoRedoListener(int level, UndoRedoListener l) {
+        undoMan.addUndoRedoListener(level, l);
+    }
+
+    public void addUndoRedoListener(UndoRedoListener l) {
+        undoMan.addUndoRedoListener(5, l);
+    }
+
     public void removeFocusListener(FocusListener l) {
         focusOrator.removeListener(l);
     }
@@ -64,6 +73,10 @@ public class MasterControl {
 
     public void removeContentListener(ContentListener l) {
         contentOrator.removeListener(l);
+    }
+
+    public void removeUndoRedoListener(UndoRedoListener l) {
+        undoMan.removeUndoRedoListener(l);
     }
 
     public void setClipboardTree(WoodClipboardTree clipboardTree) {

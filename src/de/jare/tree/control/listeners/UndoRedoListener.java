@@ -15,8 +15,12 @@ public interface UndoRedoListener {
 
     void onRedo(TreeModel model, WoodCommand command);
 
-    void onAddCommand(TreeModel model, WoodCommand command);
+    default void onAddCommand(TreeModel model, WoodCommand command) {
+        // NoOp
+    }
 
-    void onClear(TreeModel model);
+    default void onClear(TreeModel model) {
+        // NoOp
+    }
 
 }

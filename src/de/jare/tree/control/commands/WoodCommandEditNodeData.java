@@ -2,6 +2,7 @@ package de.jare.tree.control.commands;
 
 import de.jare.tree.data.JsonTreeNodeData;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 
 /**
@@ -37,8 +38,8 @@ public class WoodCommandEditNodeData implements WoodCommand {
         }
 
         this.editId = current.getEditId();
-        this.oldState = oldState;
-        this.newState = newState;
+        this.oldState = oldState.deepCopy();
+        this.newState = newState.deepCopy();
         this.description = current.toString();
     }
 
@@ -72,6 +73,11 @@ public class WoodCommandEditNodeData implements WoodCommand {
         }
         // Replace user object with a deep copy of the desired state.
         node.setUserObject(source.deepCopy());
+
+        if (!(model instanceof DefaultTreeModel dtm)) {
+            return;
+        }
+        dtm.nodeChanged(node);
     }
 
 }

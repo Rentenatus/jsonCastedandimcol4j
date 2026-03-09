@@ -7,6 +7,7 @@
 package de.jare.tree.ui;
 
 import de.jare.tree.control.MasterControl;
+import de.jare.tree.control.commands.WoodCommand;
 import de.jare.tree.control.listeners.ContentListener;
 import de.jare.tree.control.listeners.FocusListener;
 import de.jare.tree.data.JsonObjectData;
@@ -15,8 +16,9 @@ import de.jare.tree.data.JsonTreeNodeData;
 import javax.swing.*;
 import javax.swing.tree.*;
 import de.jare.tree.control.listeners.TreeSelectionListener;
+import de.jare.tree.control.listeners.UndoRedoListener;
 
-public class WoodEditTree extends JTree implements TreeSelectionListener, ContentListener, FocusListener {
+public class WoodEditTree extends JTree implements TreeSelectionListener, ContentListener, FocusListener, UndoRedoListener {
 
     private final MasterControl master;
 
@@ -63,6 +65,25 @@ public class WoodEditTree extends JTree implements TreeSelectionListener, Conten
             master.addContentListener(1, this);
             master.addFocusListener(1, this);
         }
+    }
+
+    @Override
+    public void onUndo(TreeModel model, WoodCommand cmd) {
+        doRefreshIfModel(model);
+    }
+
+    @Override
+    public void onRedo(TreeModel model, WoodCommand cmd) {
+        doRefreshIfModel(model);
+    }
+
+    private void doRefreshIfModel(TreeModel model) {
+        if (model != getModel()) {
+            return;
+        }
+        ((DefaultTreeModel) getModel()).reload();
+        revalidate();
+        repaint();
     }
 
     @Override
