@@ -53,6 +53,10 @@ public class UndoManager implements TreeSelectionListener {
         }
     }
 
+    public UndoManagerModel getActiveManager() {
+        return activeManager;
+    }
+
     /**
      * Adds the given command on the active model.
      *
@@ -83,6 +87,15 @@ public class UndoManager implements TreeSelectionListener {
     public void redo() {
         if (activeManager != null) {
             WoodCommand cmd = activeManager.redo();
+            if (cmd != null) {
+                undoRedoOrator.say(l -> l.onRedo(activeManager.getTreeModel(), cmd));
+            }
+        }
+    }
+
+    public void skip_redo() {
+        if (activeManager != null) {
+            WoodCommand cmd = activeManager.skip_redo();
             if (cmd != null) {
                 undoRedoOrator.say(l -> l.onRedo(activeManager.getTreeModel(), cmd));
             }

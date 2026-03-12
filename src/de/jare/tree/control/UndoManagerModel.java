@@ -85,6 +85,22 @@ public class UndoManagerModel {
     }
 
     /**
+     * Performs a redo operation if possible.
+     *
+     * @return
+     */
+    public WoodCommand skip_redo() {
+        TreeModel lokalModel = getTreeModel();
+        if (!canRedo(lokalModel)) {
+            return null;
+        }
+        WoodCommand cmd = redoStack.pop();
+        cmd.skip(lokalModel);
+        undoStack.push(cmd);
+        return cmd;
+    }
+
+    /**
      * Returns whether an undo operation is currently available.
      *
      * @param lokalModel
@@ -160,6 +176,32 @@ public class UndoManagerModel {
         while (undoStack.size() > limit) {
             undoStack.removeLast();
         }
+    }
+
+    public int size() {
+        return undoStack.size() + redoStack.size();
+    }
+
+    public int unoSize() {
+        return undoStack.size();
+    }
+
+    public int redoSize() {
+        return redoStack.size();
+    }
+
+    public WoodCommand getRedo(int index) {
+        if (index < 0 || index >= redoStack.size()) {
+            return null;
+        }
+        return redoStack.stream().skip(index).findFirst().orElse(null);
+    }
+
+    public WoodCommand getUndo(int index) {
+        if (index < 0 || index >= undoStack.size()) {
+            return null;
+        }
+        return undoStack.stream().skip(index).findFirst().orElse(null);
     }
 
 }

@@ -1,34 +1,22 @@
 package de.jare.tree.ui;
 
+import de.jare.tree.control.UndoManagerModel;
 import de.jare.tree.control.commands.WoodCommand;
-import java.util.ArrayList;
-import java.util.List;
 import javax.swing.table.AbstractTableModel;
 
 public class UndoTableModel extends AbstractTableModel {
 
-    public static class Entry {
+    private UndoManagerModel undoManModel = null;
 
-        public final boolean undone;      // true = auf Undo-Stack, false = auf Redo-Stack
-        public final String action;       // z.B. "Edit", "Add", "Delete"
-        public final String description;  // getDescription()
-
-        public Entry(boolean undone, String action, String description) {
-            this.undone = undone;
-            this.action = action;
-            this.description = description;
+    public void setUndoManModel(UndoManagerModel undoManModel) {
+        UndoManagerModel undoManModelAlt = this.undoManModel;
+        this.undoManModel = undoManModel;
+        if (undoManModelAlt != this.undoManModel) {
+            fireTableDataChanged();
         }
     }
 
-    private final List<Entry> entries = new ArrayList<>();
-    private int selectedIndex = -1; // oberste Undo-Position (unterster undone-Eintrag)
-
     private static final String[] COLS = {"Status", "Action", "Description"};
-
-    @Override
-    public int getRowCount() {
-        return entries.size();
-    }
 
     @Override
     public int getColumnCount() {
@@ -40,16 +28,51 @@ public class UndoTableModel extends AbstractTableModel {
         return COLS[column];
     }
 
+    // --- Sichtberechnung -----------------------------------------------------
+    public int getRedoCount() {
+        if (undoManModel == null) {
+            return 0;
+        }
+        return undoManModel.redoSize();
+    }
+
+    @Override
+    public int getRowCount() {
+        if (undoManModel == null) {
+            return 0;
+        }
+        return undoManModel.size() + 1;
+    }
+
+    // --- TableModel-API ------------------------------------------------------
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
-        Entry e = entries.get(rowIndex);
+        int redoCount = getRedoCount();
+
+        if (rowIndex == redoCount) {
+            // Trenner-Zeile
+            return switch (columnIndex) {
+                case 0, 1, 2 ->
+                    "<---";
+                default ->
+                    "";
+            };
+        }
+
+        if (undoManModel == null) {
+            return "";
+        }
+        WoodCommand cmd = (rowIndex < redoCount)
+                ? undoManModel.getRedo(redoCount - 1 - rowIndex)
+                : undoManModel.getUndo(rowIndex - redoCount - 1);
+
         return switch (columnIndex) {
             case 0 ->
-                e.undone ? "Undo" : "Redo";
+                cmd.getStatus();
             case 1 ->
-                e.action;
+                cmd.getCommandText();
             case 2 ->
-                e.description;
+                cmd.getDescription();
             default ->
                 "";
         };
@@ -59,44 +82,6 @@ public class UndoTableModel extends AbstractTableModel {
     public boolean isCellEditable(int rowIndex, int columnIndex) {
         return false;
     }
+    // --- Manipulation   ------------------------
 
-    public void clear() {
-        entries.clear();
-        selectedIndex = -1;
-        fireTableDataChanged();
-    }
-
-    public void addCommand(WoodCommand cmd) {
-        // neuer Befehl -> alles „darüber“ (Redo-Bereich) verwerfen
-        while (!entries.isEmpty() && selectedIndex < entries.size() - 1) {
-            entries.remove(entries.size() - 1);
-        }
-        entries.add(new Entry(true, cmd.getCommandText(), cmd.getDescription()));
-        selectedIndex = entries.size() - 1;
-        fireTableDataChanged();
-    }
-
-    public void markUndo() {
-        if (selectedIndex >= 0) {
-            Entry e = entries.get(selectedIndex);
-            entries.set(selectedIndex,
-                    new Entry(false, e.action, e.description));
-            selectedIndex--;
-            fireTableRowsUpdated(Math.max(selectedIndex, 0), entries.size() - 1);
-        }
-    }
-
-    public void markRedo() {
-        if (selectedIndex + 1 < entries.size()) {
-            selectedIndex++;
-            Entry e = entries.get(selectedIndex);
-            entries.set(selectedIndex,
-                    new Entry(true, e.action, e.description));
-            fireTableRowsUpdated(selectedIndex, entries.size() - 1);
-        }
-    }
-
-    public int getSelectedIndex() {
-        return selectedIndex;
-    }
 }

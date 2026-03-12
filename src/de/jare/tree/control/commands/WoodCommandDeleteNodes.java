@@ -125,6 +125,10 @@ public class WoodCommandDeleteNodes implements WoodCommand {
     }
 
     @Override
+    public void skip(TreeModel model) { 
+    }
+
+    @Override
     public String getDescription() {
         return description;
     }

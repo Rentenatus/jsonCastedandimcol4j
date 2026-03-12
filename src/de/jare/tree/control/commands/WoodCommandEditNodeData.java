@@ -19,6 +19,8 @@ public class WoodCommandEditNodeData implements WoodCommand {
     private final JsonTreeNodeData oldState;
     private final JsonTreeNodeData newState;
     private final String description;
+    private String status;
+    private boolean skipped;
 
     /**
      * Creates a new edit command for the given node data.
@@ -41,16 +43,36 @@ public class WoodCommandEditNodeData implements WoodCommand {
         this.oldState = oldState.deepCopy();
         this.newState = newState.deepCopy();
         this.description = current.toString();
+        this.status = "Action done";
+        this.skipped = false;
     }
 
     @Override
     public void execute(TreeModel model) {
         applyState(model, newState);
+        this.status = "Redo done";
     }
 
     @Override
     public void undo(TreeModel model) {
+        if (skipped) {
+            this.status = "";
+            this.skipped = false;
+            return;
+        }
         applyState(model, oldState);
+        this.status = "Reverted";
+    }
+
+    @Override
+    public void skip(TreeModel model) {
+        this.status = "Skipped";
+        this.skipped = true;
+    }
+
+    @Override
+    public String getStatus() {
+        return status;
     }
 
     @Override

@@ -36,6 +36,13 @@ public interface WoodCommand {
     void undo(TreeModel model);
 
     /**
+     * Skip redo.
+     *
+     * @param model
+     */
+    public void skip(TreeModel model);
+
+    /**
      * Human-readable description details for UI (e.g. menu/tool tip).
      *
      * @return short description of this command
@@ -51,6 +58,10 @@ public interface WoodCommand {
      */
     default String getCommandText() {
         return getClass().getSimpleName();
+    }
+
+    default String getStatus() {
+        return "";
     }
 
     default DefaultMutableTreeNode findNodeByEditId(TreeModel model, long id) {
