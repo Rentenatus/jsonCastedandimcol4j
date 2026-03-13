@@ -47,7 +47,7 @@ public class WoodEditTree extends JTree implements TreeSelectionListener, Conten
 
         // eigene Selektion an MasterControl melden, aber nur wenn dieser Tree aktiv ist
         addTreeSelectionListener(e -> {
-            if (master != null && master.getActiveEditor() == WoodEditTree.this) {
+            if (master.getActiveEditor() == WoodEditTree.this) {
                 DefaultMutableTreeNode node
                         = (DefaultMutableTreeNode) getLastSelectedPathComponent();
                 boolean rootSelected = node != null && node.getParent() == null;
@@ -60,11 +60,10 @@ public class WoodEditTree extends JTree implements TreeSelectionListener, Conten
         setTransferHandler(new TreeNodeTransferHandler());
         getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
 
-        if (master != null) {
-            master.addSelectionListener(1, this);
-            master.addContentListener(1, this);
-            master.addFocusListener(1, this);
-        }
+        master.addSelectionListener(1, this);
+        master.addContentListener(1, this);
+        master.addFocusListener(1, this);
+
     }
 
     @Override

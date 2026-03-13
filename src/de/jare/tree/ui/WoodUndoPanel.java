@@ -14,6 +14,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTree;
+import javax.swing.SwingUtilities;
 import javax.swing.tree.TreeModel;
 
 public class WoodUndoPanel extends JPanel implements UndoRedoListener, TreeSelectionListener {
@@ -21,6 +22,7 @@ public class WoodUndoPanel extends JPanel implements UndoRedoListener, TreeSelec
     private final UndoTableModel undoModel;
     private final JTable undoTable;
     private final UndoManager undoMan;
+    private final UndoButtonPanel buttonPanel;
 
     public WoodUndoPanel(MasterControl master) {
         super(new BorderLayout());
@@ -35,7 +37,7 @@ public class WoodUndoPanel extends JPanel implements UndoRedoListener, TreeSelec
         undoTable.setFocusable(false);
 
         // linkes Buttonpanel
-        UndoButtonPanel buttonPanel = new UndoButtonPanel(master);
+        buttonPanel = new UndoButtonPanel(master);
         add(buttonPanel, BorderLayout.WEST);
 
         // Tabelle in der Mitte
@@ -49,7 +51,7 @@ public class WoodUndoPanel extends JPanel implements UndoRedoListener, TreeSelec
     @Override
     public void onAddCommand(TreeModel tm, WoodCommand cmd) {
         undoModel.fireTableDataChanged();
-        selectCurrent();
+        SwingUtilities.invokeLater(this::selectCurrent);
     }
 
     @Override
@@ -83,5 +85,6 @@ public class WoodUndoPanel extends JPanel implements UndoRedoListener, TreeSelec
         } else {
             undoTable.clearSelection();
         }
+        buttonPanel.updateButtons();
     }
 }

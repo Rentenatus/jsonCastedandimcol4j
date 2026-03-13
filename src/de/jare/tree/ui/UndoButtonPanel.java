@@ -9,6 +9,9 @@ import javax.swing.border.EmptyBorder;
 public class UndoButtonPanel extends JPanel {
 
     private final UndoManager undoMan;
+    private final JButton btnUndo;
+    private final JButton btnRedo;
+    private final JButton btnSkipRedo;
 
     public UndoButtonPanel(MasterControl master) {
         this.undoMan = master.getUndoManager();
@@ -16,9 +19,9 @@ public class UndoButtonPanel extends JPanel {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setBorder(new EmptyBorder(4, 4, 4, 4));
 
-        JButton btnUndo = createIconButton("/icons/undo.png", "Undo");
-        JButton btnRedo = createIconButton("/icons/redo.png", "Redo");
-        JButton btnSkipRedo = createIconButton("/icons/skip_redo.png", "Skip Redo");
+        btnUndo = createIconButton("/icons/undo.png", "Undo");
+        btnRedo = createIconButton("/icons/redo.png", "Redo");
+        btnSkipRedo = createIconButton("/icons/skip_redo.png", "Skip Redo");
 
         btnUndo.addActionListener(e -> undoMan.undo());
         btnRedo.addActionListener(e -> undoMan.redo());
@@ -29,6 +32,9 @@ public class UndoButtonPanel extends JPanel {
         add(btnRedo);
         add(Box.createVerticalStrut(8));
         add(btnSkipRedo);
+
+        // initialer Zustand
+        updateButtons();
     }
 
     private JButton createIconButton(String resource, String tooltip) {
@@ -39,9 +45,17 @@ public class UndoButtonPanel extends JPanel {
         b.setContentAreaFilled(false);
         b.setBorderPainted(true);
         b.setOpaque(false);
-        // kleine Standardgr��e
+        // kleine Standardgroesse
         b.setMaximumSize(new Dimension(32, 32));
         b.setPreferredSize(new Dimension(32, 32));
         return b;
+    }
+
+    protected final void updateButtons() {
+        final boolean canUndo = undoMan.canUndo();
+        final boolean canRedo = undoMan.canRedo();
+        btnUndo.setEnabled(canUndo);
+        btnRedo.setEnabled(canRedo);
+        btnSkipRedo.setEnabled(canRedo);
     }
 }
