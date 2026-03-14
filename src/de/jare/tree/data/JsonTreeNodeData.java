@@ -49,9 +49,10 @@ public sealed interface JsonTreeNodeData permits JsonObjectData, JsonPropertyDat
      * Creates a deep copy of this node data, including all recursive contents,
      * so that the copy can be modified independently of the original instance.
      *
+     * @param regenerateEditId
      * @return deep-copied node data instance
      */
-    JsonTreeNodeData deepCopy();
+    JsonTreeNodeData deepCopy(boolean regenerateEditId);
 
     /**
      * Called when this node is removed from its parent node, giving the parent

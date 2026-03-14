@@ -254,7 +254,7 @@ public class WoodEditTree extends JTree implements TreeSelectionListener, Conten
             return;
         }
 
-        master.getClipboardTree().copySelection(this, paths);
+        master.getClipboardTree().copySelection(this, paths, cut);
 
         // Bei Cut: Originale entfernen
         if (cut) {

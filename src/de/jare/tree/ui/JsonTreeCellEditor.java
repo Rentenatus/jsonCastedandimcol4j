@@ -104,7 +104,7 @@ public class JsonTreeCellEditor extends AbstractCellEditor implements TreeCellEd
         if (currentData == null || currentData.getEditText() != null && currentData.getEditText().equals(textField.getText())) {
             return;
         }
-        JsonTreeNodeData oldData = currentData.deepCopy();
+        JsonTreeNodeData oldData = currentData.deepCopy(false);
         currentData.setEditText(textField.getText());
         WoodCommand command = new WoodCommandEditNodeData(currentData, oldData, currentData);
         undoMan.pushCommand(command);

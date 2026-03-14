@@ -66,8 +66,8 @@ public final class JsonObjectData implements JsonTreeNodeData {
     }
 
     @Override
-    public JsonTreeNodeData deepCopy() {
-        return new JsonObjectData(editId, primValue, objektInfo);
+    public JsonTreeNodeData deepCopy(boolean regenerateEditId) {
+        return new JsonObjectData(regenerateEditId ? IdGenerator.EDIT_ID_GENERATOR.nextId() : editId, primValue, objektInfo);
     }
 
     @Override

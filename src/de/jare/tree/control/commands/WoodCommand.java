@@ -95,7 +95,7 @@ public interface WoodCommand {
     default DefaultMutableTreeNode deepCopy(DefaultMutableTreeNode original) {
         Object uo = original.getUserObject();
         if (uo instanceof JsonTreeNodeData data) {
-            uo = data.deepCopy();
+            uo = data.deepCopy(false);
         } else {
             uo = String.valueOf(uo);
         }

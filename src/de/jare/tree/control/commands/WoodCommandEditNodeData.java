@@ -40,8 +40,8 @@ public class WoodCommandEditNodeData implements WoodCommand {
         }
 
         this.editId = current.getEditId();
-        this.oldState = oldState.deepCopy();
-        this.newState = newState.deepCopy();
+        this.oldState = oldState.deepCopy(false);
+        this.newState = newState.deepCopy(false);
         this.description = current.toString();
         this.status = STATUS_ACTION_DONE;
         this.skipped = false;
@@ -93,7 +93,7 @@ public class WoodCommandEditNodeData implements WoodCommand {
             return; // node no longer exists -> nothing to do
         }
         // Replace user object with a deep copy of the desired state.
-        node.setUserObject(source.deepCopy());
+        node.setUserObject(source.deepCopy(false));
 
         if (!(model instanceof DefaultTreeModel dtm)) {
             return;

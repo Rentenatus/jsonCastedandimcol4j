@@ -16,9 +16,11 @@ public class WoodClipboardTree extends JTree {
 
     private DefaultMutableTreeNode[] clipboardNodes;
     private WoodEditTree sourceTree;
+    private boolean cut;
 
     public WoodClipboardTree() {
         super(new DefaultMutableTreeNode("Clipboard"));
+        this.cut = false;
         setEditable(false);
         setRootVisible(true);
         setShowsRootHandles(true);
@@ -38,13 +40,14 @@ public class WoodClipboardTree extends JTree {
         showClipboardContent(null);
     }
 
-    public void copySelection(WoodEditTree trigger, TreePath[] paths) {
+    public void copySelection(WoodEditTree trigger, TreePath[] paths, boolean cut) {
         if (paths == null || paths.length == 0) {
             clipboardNodes = null;
             return;
         }
         sourceTree = trigger;
-        clipboardNodes = deepCopies(paths);
+        this.cut = cut;
+        clipboardNodes = deepCopies(paths, !cut);
         showClipboardContent(clipboardNodes);
     }
 
@@ -60,10 +63,11 @@ public class WoodClipboardTree extends JTree {
         DefaultMutableTreeNode lastCopy = null;
 
         for (DefaultMutableTreeNode node : clipboardNodes) {
-            DefaultMutableTreeNode copy = deepCopy(node);
+            DefaultMutableTreeNode copy = deepCopy(node, !cut);
             model.insertNodeInto(copy, parent, index++);
             lastCopy = copy;
         }
+        this.cut = false;
 
         if (lastCopy != null) {
             TreePath newPath = new TreePath(lastCopy.getPath());
@@ -82,7 +86,7 @@ public class WoodClipboardTree extends JTree {
         root.removeAllChildren();
         if (nodes != null) {
             for (DefaultMutableTreeNode n : nodes) {
-                root.add(deepCopy(n));
+                root.add(deepCopy(n, false));
             }
         }
         ((DefaultTreeModel) getModel()).reload();
@@ -108,26 +112,26 @@ public class WoodClipboardTree extends JTree {
         return true;
     }
 
-    private DefaultMutableTreeNode[] deepCopies(TreePath[] paths) {
+    private DefaultMutableTreeNode[] deepCopies(TreePath[] paths, boolean regenerateEditId) {
         DefaultMutableTreeNode copies[] = new DefaultMutableTreeNode[paths.length];
         for (int i = 0; i < paths.length; i++) {
             final DefaultMutableTreeNode original = (DefaultMutableTreeNode) paths[i].getLastPathComponent();
-            copies[i] = deepCopy(original);
+            copies[i] = deepCopy(original, regenerateEditId);
         }
         return copies;
     }
 
-    private DefaultMutableTreeNode deepCopy(DefaultMutableTreeNode original) {
+    private DefaultMutableTreeNode deepCopy(DefaultMutableTreeNode original, boolean regenerateEditId) {
         Object userObject = original.getUserObject();
         if (userObject instanceof JsonTreeNodeData originalData) {
-            userObject = originalData.deepCopy();
+            userObject = originalData.deepCopy(regenerateEditId);
         } else {
             userObject = String.valueOf(userObject);
         }
         DefaultMutableTreeNode copy = new DefaultMutableTreeNode(userObject);
         for (int i = 0; i < original.getChildCount(); i++) {
             DefaultMutableTreeNode child = (DefaultMutableTreeNode) original.getChildAt(i);
-            copy.add(deepCopy(child));
+            copy.add(deepCopy(child, regenerateEditId));
         }
         return copy;
     }
