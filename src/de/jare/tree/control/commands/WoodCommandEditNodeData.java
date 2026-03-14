@@ -43,14 +43,13 @@ public class WoodCommandEditNodeData implements WoodCommand {
         this.oldState = oldState.deepCopy();
         this.newState = newState.deepCopy();
         this.description = current.toString();
-        this.status = "Action done";
+        this.status = STATUS_ACTION_DONE;
         this.skipped = false;
     }
 
     @Override
     public void execute(TreeModel model) {
-        applyState(model, newState);
-        this.status = "Redo done";
+        applyState(model, newState, STATUS_REDO_DONE);
     }
 
     @Override
@@ -60,13 +59,12 @@ public class WoodCommandEditNodeData implements WoodCommand {
             this.skipped = false;
             return;
         }
-        applyState(model, oldState);
-        this.status = "Reverted";
+        applyState(model, oldState, STATUS_REVERTED);
     }
 
     @Override
     public void skip(TreeModel model) {
-        this.status = "Skipped";
+        this.status = STATUS_SKIPPED;
         this.skipped = true;
     }
 
@@ -85,12 +83,13 @@ public class WoodCommandEditNodeData implements WoodCommand {
         return "Edit";
     }
 
-    private void applyState(TreeModel model, JsonTreeNodeData source) {
+    private void applyState(TreeModel model, JsonTreeNodeData source, String newStatus) {
         if (model == null) {
             return;
         }
         DefaultMutableTreeNode node = findNodeByEditId(model, editId);
         if (node == null) {
+            this.status = "Failed: node not found";
             return; // node no longer exists -> nothing to do
         }
         // Replace user object with a deep copy of the desired state.
@@ -100,6 +99,7 @@ public class WoodCommandEditNodeData implements WoodCommand {
             return;
         }
         dtm.nodeChanged(node);
+        this.status = newStatus;
     }
 
 }

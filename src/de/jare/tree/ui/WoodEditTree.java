@@ -8,6 +8,8 @@ package de.jare.tree.ui;
 
 import de.jare.tree.control.MasterControl;
 import de.jare.tree.control.commands.WoodCommand;
+import de.jare.tree.control.commands.WoodCommandAddNodes;
+import de.jare.tree.control.commands.WoodCommandDeleteNodes;
 import de.jare.tree.control.listeners.ContentListener;
 import de.jare.tree.control.listeners.FocusListener;
 import de.jare.tree.data.JsonObjectData;
@@ -154,18 +156,19 @@ public class WoodEditTree extends JTree implements TreeSelectionListener, Conten
             return;
         }
         switch (commandId) {
-            case "edit.addNode" ->
+            case EDIT_ADD_NODE ->
                 addNode();
-            case "edit.deleteNode" ->
+            case EDIT_DELETE_NODE ->
                 deleteNode();
-            case "edit.renameNode" ->
+            case EDIT_RENAME_NODE ->
                 renameNode();
-            case "edit.copy" ->
+            case EDIT_COPY ->
                 copySelection(false);
-            case "edit.cut" ->
+            case EDIT_CUT ->
                 copySelection(true);
-            case "edit.paste" ->
+            case EDIT_PASTE ->
                 pasteClipboard();
+
         }
     }
 
@@ -180,11 +183,16 @@ public class WoodEditTree extends JTree implements TreeSelectionListener, Conten
             return; // Sicherheitsnetz
         }
 
-        // neuen Kind-Knoten ?ber die Fabrik-Methode erzeugen
+        // neuen Kind-Knoten erzeugen
         JsonTreeNodeData childData = data.createChild("new");
         DefaultMutableTreeNode child = new DefaultMutableTreeNode(childData);
         selected.add(child);
         ((DefaultTreeModel) getModel()).reload(selected);
+        master.getUndoManager().pushCommand(new WoodCommandAddNodes(
+                new DefaultMutableTreeNode[]{child},
+                new DefaultMutableTreeNode[]{selected},
+                selected.getIndex(child)
+        ));
     }
 
     private void deleteNode() {
@@ -206,6 +214,10 @@ public class WoodEditTree extends JTree implements TreeSelectionListener, Conten
             }
         }
 
+        master.getUndoManager().pushCommand(new WoodCommandDeleteNodes(
+                new DefaultMutableTreeNode[]{selected},
+                new DefaultMutableTreeNode[]{parent}
+        ));
         model.removeNodeFromParent(selected);
 
         // neue Selektion ermitteln: naechster/vorheriger Bruder oder nichts

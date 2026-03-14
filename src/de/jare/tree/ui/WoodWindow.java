@@ -20,7 +20,7 @@ public class WoodWindow extends JFrame {
     public WoodWindow() {
         master = new MasterControl();
 
-        setTitle("Tree Editor");
+        setTitle("Wood Json Studio");
         setSize(1200, 800);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLayout(new BorderLayout());

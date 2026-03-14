@@ -20,6 +20,11 @@ import javax.swing.tree.TreeModel;
  */
 public interface WoodCommand {
 
+    public static final String STATUS_ACTION_DONE = "Action done";
+    public static final String STATUS_REDO_DONE = "Redo done";
+    public static final String STATUS_REVERTED = "Reverted";
+    public static final String STATUS_SKIPPED = "Skipped";
+
     /**
      * Executes the command, applying its change to the model.
      *

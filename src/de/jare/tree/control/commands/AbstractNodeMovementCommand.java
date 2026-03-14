@@ -22,9 +22,10 @@ public abstract class AbstractNodeMovementCommand implements WoodCommand {
     }
     private String status;
     private boolean skipped;
+    protected String commandText;
 
     public AbstractNodeMovementCommand() {
-        this.status = "Action done";
+        this.status = STATUS_ACTION_DONE;
         this.skipped = false;
     }
 
@@ -33,15 +34,31 @@ public abstract class AbstractNodeMovementCommand implements WoodCommand {
         return status;
     }
 
-    public void addNodes(TreeModel model, Entry[] entries) {
+    public void setCommandText(String commandText) {
+        this.commandText = commandText;
+    }
+
+    public AbstractNodeMovementCommand resetCommandText(String commandText) {
+        this.commandText = commandText;
+        return this;
+    }
+
+    @Override
+    public String getCommandText() {
+        return commandText;
+    }
+
+    public void addNodes(TreeModel model, Entry[] entries, String newStatus) {
         DefaultTreeModel dtm = asDefaultModel(model);
         if (dtm == null) {
             return;
         }
-
+        int done = 0;
+        int failed = 0;
         for (Entry e : entries) {
             DefaultMutableTreeNode parent = findNodeByEditId(model, e.parentEditId);
             if (parent == null) {
+                failed++;
                 continue;
             }
 
@@ -52,24 +69,40 @@ public abstract class AbstractNodeMovementCommand implements WoodCommand {
 
             DefaultMutableTreeNode copy = deepCopy(e.snapshot);
             dtm.insertNodeInto(copy, parent, insertIndex);
+            done++;
+        }
+
+        if (failed == 0) {
+            this.status = newStatus;
+        } else if (done == 0) {
+            this.status = "Failed: node not found";
+        } else {
+            this.status = done + " done, " + failed + " failed: node not found";
         }
     }
 
-    public void deleteNodes(TreeModel model, Entry[] entries) {
+    public void deleteNodes(TreeModel model, Entry[] entries, String newStatus) {
         DefaultTreeModel dtm = asDefaultModel(model);
         if (dtm == null) {
             return;
         }
 
+        int done = 0;
+        int noParent = 0;
+        int noChild = 0;
+        int failed = 0;
         for (int i = entries.length - 1; i >= 0; i--) {
             Entry e = entries[i];
             DefaultMutableTreeNode parent = findNodeByEditId(model, e.parentEditId);
             if (parent == null) {
+                noParent++;
+                failed++;
                 continue;
             }
 
             Object snapUo = e.snapshot.getUserObject();
             if (!(snapUo instanceof JsonTreeNodeData snapData)) {
+                failed++;
                 continue;
             }
             long snapEditId = snapData.getEditId();
@@ -85,7 +118,19 @@ public abstract class AbstractNodeMovementCommand implements WoodCommand {
             }
             if (toRemove != null) {
                 dtm.removeNodeFromParent(toRemove);
+                done++;
+            } else {
+                noChild++;
+                failed++;
             }
+        }
+
+        if (failed == 0) {
+            this.status = newStatus;
+        } else if (done == 0) {
+            this.status = "Failed: " + noParent + " parent not found, " + noChild + " node not found";
+        } else {
+            this.status = done + " done, " + failed + " failed: node or parent not found";
         }
     }
 
@@ -96,7 +141,6 @@ public abstract class AbstractNodeMovementCommand implements WoodCommand {
     @Override
     public void execute(TreeModel model) {
         executeMovement(model);
-        this.status = "Redo done";
     }
 
     @Override
@@ -107,7 +151,6 @@ public abstract class AbstractNodeMovementCommand implements WoodCommand {
             return;
         }
         undoMovement(model);
-        this.status = "Reverted";
     }
 
     abstract void executeMovement(TreeModel model);
@@ -116,7 +159,7 @@ public abstract class AbstractNodeMovementCommand implements WoodCommand {
 
     @Override
     public void skip(TreeModel model) {
-        this.status = "Skipped";
+        this.status = STATUS_SKIPPED;
         this.skipped = true;
     }
 }

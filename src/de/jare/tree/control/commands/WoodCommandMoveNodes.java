@@ -31,6 +31,7 @@ public class WoodCommandMoveNodes extends AbstractNodeMovementCommand {
             DefaultMutableTreeNode[] parentNodes,
             DefaultMutableTreeNode trgNode,
             int startIdx) {
+        this.commandText = "Move nodes";
 
         if (nodesToMove == null || parentNodes == null || nodesToMove.length == 0) {
             throw new IllegalArgumentException("parentNodes and nodesToMove must not be null/empty");
@@ -100,15 +101,15 @@ public class WoodCommandMoveNodes extends AbstractNodeMovementCommand {
     @Override
     public void executeMovement(TreeModel model) {
         // Move = Delete (Quelle) + Add (Ziel)
-        deleteNodes(model, deleteEntries);
-        addNodes(model, addEntries);
+        deleteNodes(model, deleteEntries, STATUS_REDO_DONE);
+        addNodes(model, addEntries, getStatus());
     }
 
     @Override
     public void undoMovement(TreeModel model) {
         // Undo(Move) = Delete (Ziel) + Add (Quelle)
-        deleteNodes(model, addEntries);
-        addNodes(model, deleteEntries);
+        deleteNodes(model, addEntries, STATUS_REVERTED);
+        addNodes(model, deleteEntries, getStatus());
     }
 
     @Override
@@ -116,8 +117,4 @@ public class WoodCommandMoveNodes extends AbstractNodeMovementCommand {
         return description;
     }
 
-    @Override
-    public String getCommandText() {
-        return "Move";
-    }
 }

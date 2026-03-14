@@ -1,9 +1,7 @@
 package de.jare.tree.control.commands;
 
 import de.jare.tree.data.JsonTreeNodeData;
-
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 
 /**
@@ -25,6 +23,7 @@ public class WoodCommandDeleteNodes extends AbstractNodeMovementCommand {
     public WoodCommandDeleteNodes(
             DefaultMutableTreeNode[] nodesToDelete,
             DefaultMutableTreeNode[] parentNodes) {
+        this.commandText = "Delete nodes";
 
         if (nodesToDelete == null || parentNodes == null || nodesToDelete.length == 0) {
             throw new IllegalArgumentException("parentNodes and nodesToDelete must not be null/empty");
@@ -69,12 +68,12 @@ public class WoodCommandDeleteNodes extends AbstractNodeMovementCommand {
 
     @Override
     public void executeMovement(TreeModel model) {
-        deleteNodes(model, entries);
+        deleteNodes(model, entries, STATUS_REDO_DONE);
     }
 
     @Override
     public void undoMovement(TreeModel model) {
-        addNodes(model, entries);
+        addNodes(model, entries, STATUS_REVERTED);
     }
 
     @Override
@@ -82,8 +81,4 @@ public class WoodCommandDeleteNodes extends AbstractNodeMovementCommand {
         return description;
     }
 
-    @Override
-    public String getCommandText() {
-        return "Delete";
-    }
 }

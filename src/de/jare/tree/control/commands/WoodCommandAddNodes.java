@@ -1,9 +1,7 @@
 package de.jare.tree.control.commands;
 
 import de.jare.tree.data.JsonTreeNodeData;
-
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 
 /**
@@ -21,7 +19,8 @@ public class WoodCommandAddNodes extends AbstractNodeMovementCommand {
     public WoodCommandAddNodes(
             DefaultMutableTreeNode[] nodesToAdd,
             DefaultMutableTreeNode[] parentNodes,
-            int[] indices) {
+            int... indices) {
+        this.commandText = "Add nodes";
 
         if (nodesToAdd == null || parentNodes == null || nodesToAdd.length == 0) {
             throw new IllegalArgumentException("parentNodes and nodesToAdd must not be null/empty");
@@ -70,12 +69,12 @@ public class WoodCommandAddNodes extends AbstractNodeMovementCommand {
 
     @Override
     public void executeMovement(TreeModel model) {
-        addNodes(model, entries);
+        addNodes(model, entries, STATUS_REDO_DONE);
     }
 
     @Override
     public void undoMovement(TreeModel model) {
-        deleteNodes(model, entries);
+        deleteNodes(model, entries, STATUS_REVERTED);
     }
 
     @Override
@@ -83,8 +82,4 @@ public class WoodCommandAddNodes extends AbstractNodeMovementCommand {
         return description;
     }
 
-    @Override
-    public String getCommandText() {
-        return "Add";
-    }
 }

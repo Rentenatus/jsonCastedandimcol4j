@@ -7,6 +7,12 @@
 package de.jare.tree.ui;
 
 import de.jare.tree.control.MasterControl;
+import static de.jare.tree.control.listeners.ContentListener.EDIT_ADD_NODE;
+import static de.jare.tree.control.listeners.ContentListener.EDIT_COPY;
+import static de.jare.tree.control.listeners.ContentListener.EDIT_CUT;
+import static de.jare.tree.control.listeners.ContentListener.EDIT_DELETE_NODE;
+import static de.jare.tree.control.listeners.ContentListener.EDIT_PASTE;
+import static de.jare.tree.control.listeners.ContentListener.EDIT_RENAME_NODE;
 import de.jare.tree.data.JsonTreeNodeData;
 import java.awt.event.KeyEvent;
 import javax.swing.*;
@@ -44,9 +50,9 @@ public class WoodMainMenu extends JMenuBar {
         JMenuItem cutItem = new JMenuItem("Cut");
         JMenuItem pasteItem = new JMenuItem("Paste");
 
-        copyItem.addActionListener(e -> master.fireCommand("edit.copy", master.getClipboardTree()));
-        cutItem.addActionListener(e -> master.fireCommand("edit.cut", master.getClipboardTree()));
-        pasteItem.addActionListener(e -> master.fireCommand("edit.paste", master.getClipboardTree()));
+        copyItem.addActionListener(e -> master.fireCommand(EDIT_COPY, master.getClipboardTree()));
+        cutItem.addActionListener(e -> master.fireCommand(EDIT_CUT, master.getClipboardTree()));
+        pasteItem.addActionListener(e -> master.fireCommand(EDIT_PASTE, master.getClipboardTree()));
 
         projectMenu.addSeparator();
         projectMenu.add(copyItem);
@@ -61,9 +67,9 @@ public class WoodMainMenu extends JMenuBar {
         JMenuItem deleteNodeItem = new JMenuItem("Node löschen");
         JMenuItem renameNodeItem = new JMenuItem("Node umbenennen");
 
-        addNodeItem.addActionListener(e -> master.fireCommand("edit.addNode", this));
-        deleteNodeItem.addActionListener(e -> master.fireCommand("edit.deleteNode", this));
-        renameNodeItem.addActionListener(e -> master.fireCommand("edit.renameNode", this));
+        addNodeItem.addActionListener(e -> master.fireCommand(EDIT_ADD_NODE, this));
+        deleteNodeItem.addActionListener(e -> master.fireCommand(EDIT_DELETE_NODE, this));
+        renameNodeItem.addActionListener(e -> master.fireCommand(EDIT_RENAME_NODE, this));
 
         editMenu.add(addNodeItem);
         editMenu.add(deleteNodeItem);

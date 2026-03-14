@@ -110,7 +110,6 @@ public class MasterControl {
         selectionOrator.say(l -> l.onNodeSelected(node, trigger, rootSelected));
     }
 
-    // Vom Men? / KI / Toolbar gerufen
     public void fireCommand(String commandId, Object trigger) {
         contentOrator.say(l -> l.onCommand(commandId, trigger));
     }
