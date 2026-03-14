@@ -9,123 +9,72 @@ import javax.swing.tree.TreeModel;
 /**
  * Command that deletes one or more nodes (and their subtrees).
  * <p>
- * On execute, all nodes are removed and deep copies are stored. On undo, the
- * nodes are reinserted at their original indices under the same parents
- * (identified by their editIds).
+ * Each node is identified by its parent editId and its index at delete time. A
+ * deep copy snapshot of the subtree is stored so that undo can re-insert it.
  * </p>
  */
-public class WoodCommandDeleteNodes implements WoodCommand {
-
-    private static class Entry {
-
-        final long nodeEditId;
-        final long parentEditId;
-        final int index;
-        final DefaultMutableTreeNode snapshot;
-
-        Entry(long nodeEditId, long parentEditId, int index, DefaultMutableTreeNode snapshot) {
-            this.nodeEditId = nodeEditId;
-            this.parentEditId = parentEditId;
-            this.index = index;
-            this.snapshot = snapshot;
-        }
-    }
+public class WoodCommandDeleteNodes extends AbstractNodeMovementCommand {
 
     private final Entry[] entries;
     private final String description;
 
     /**
-     * @param nodes nodes to delete; parents/indices are captured at
-     * construction time
+     * @param nodesToDelete die zu löschenden Knoten (aktueller Baumzustand)
+     * @param parentNodes deren Elternknoten (gleiche Länge wie nodesToDelete)
      */
-    public WoodCommandDeleteNodes(DefaultMutableTreeNode[] nodes) {
-        if (nodes == null || nodes.length == 0) {
-            throw new IllegalArgumentException("nodes must not be null or empty");
+    public WoodCommandDeleteNodes(
+            DefaultMutableTreeNode[] nodesToDelete,
+            DefaultMutableTreeNode[] parentNodes) {
+
+        if (nodesToDelete == null || parentNodes == null || nodesToDelete.length == 0) {
+            throw new IllegalArgumentException("parentNodes and nodesToDelete must not be null/empty");
+        }
+        if (nodesToDelete.length != parentNodes.length) {
+            throw new IllegalArgumentException("nodesToDelete and parentNodes length mismatch");
         }
 
-        this.entries = new Entry[nodes.length];
+        int length = nodesToDelete.length;
+        this.entries = new Entry[length];
 
-        for (int i = 0; i < nodes.length; i++) {
-            DefaultMutableTreeNode node = nodes[i];
-            if (node == null) {
-                throw new IllegalArgumentException("nodes[" + i + "] must not be null");
-            }
-            Object uo = node.getUserObject();
-            if (!(uo instanceof JsonTreeNodeData jd)) {
-                throw new IllegalArgumentException("node userObject must be JsonTreeNodeData");
-            }
-            long nodeId = jd.getEditId();
+        for (int i = 0; i < length; i++) {
+            DefaultMutableTreeNode n = nodesToDelete[i];
+            DefaultMutableTreeNode p = parentNodes[i];
 
-            if (!(node.getParent() instanceof DefaultMutableTreeNode parent)) {
-                throw new IllegalArgumentException("node has no parent (probably root)");
+            if (n == null) {
+                throw new IllegalArgumentException("nodesToDelete[" + i + "] must not be null");
             }
-            Object pu = parent.getUserObject();
-            if (!(pu instanceof JsonTreeNodeData pjd)) {
-                throw new IllegalArgumentException("parent userObject must be JsonTreeNodeData");
+            if (p == null) {
+                throw new IllegalArgumentException("parentNodes[" + i + "] must not be null");
             }
-            long parentId = pjd.getEditId();
-            int index = parent.getIndex(node);
 
-            DefaultMutableTreeNode snapshot = deepCopy(node);
-            entries[i] = new Entry(nodeId, parentId, index, snapshot);
+            Object pData = p.getUserObject();
+            if (!(pData instanceof JsonTreeNodeData parentData)) {
+                throw new IllegalArgumentException("parentNodes[" + i + "] userObject must be JsonTreeNodeData");
+            }
+
+            int idx = p.getIndex(n);
+            if (idx < 0) {
+                throw new IllegalArgumentException("nodesToDelete[" + i + "] is not a child of parentNodes[" + i + "]");
+            }
+
+            entries[i] = new Entry(parentData.getEditId(), idx, deepCopy(n));
         }
 
-        if (nodes.length == 1) {
-            this.description = "'" + nodes[0].getUserObject() + "'";
+        if (nodesToDelete.length == 1) {
+            this.description = "'" + nodesToDelete[0].getUserObject() + "'";
         } else {
-            this.description = nodes.length + " nodes";
+            this.description = nodesToDelete.length + " nodes";
         }
     }
 
     @Override
-    public void execute(TreeModel model) {
-        if (!(model instanceof DefaultTreeModel dtm)) {
-            return;
-        }
-        // In absteigender Index-Reihenfolge l�schen, damit Indizes stabil bleiben
-        // Wir sortieren die Eintr�ge lokal nach Index
-        Entry[] sorted = entries.clone();
-        java.util.Arrays.sort(sorted, (a, b) -> Integer.compare(b.index, a.index));
-
-        for (Entry e : sorted) {
-            DefaultMutableTreeNode parent = findNodeByEditId(model, e.parentEditId);
-            if (parent == null) {
-                continue;
-            }
-            // Suche das Kind mit passender nodeEditId
-            for (int i = 0; i < parent.getChildCount(); i++) {
-                DefaultMutableTreeNode child = (DefaultMutableTreeNode) parent.getChildAt(i);
-                Object uo = child.getUserObject();
-                if (uo instanceof JsonTreeNodeData d && d.getEditId() == e.nodeEditId) {
-                    dtm.removeNodeFromParent(child);
-                    break;
-                }
-            }
-        }
+    public void executeMovement(TreeModel model) {
+        deleteNodes(model, entries);
     }
 
     @Override
-    public void undo(TreeModel model) {
-        if (!(model instanceof DefaultTreeModel dtm)) {
-            return;
-        }
-        // In aufsteigender Index-Reihenfolge wieder einf�gen
-        Entry[] sorted = entries.clone();
-        java.util.Arrays.sort(sorted, java.util.Comparator.comparingInt(a -> a.index));
-
-        for (Entry e : sorted) {
-            DefaultMutableTreeNode parent = findNodeByEditId(model, e.parentEditId);
-            if (parent == null) {
-                continue;
-            }
-            int insertIndex = Math.min(e.index, parent.getChildCount());
-            DefaultMutableTreeNode copy = deepCopy(e.snapshot);
-            dtm.insertNodeInto(copy, parent, insertIndex);
-        }
-    }
-
-    @Override
-    public void skip(TreeModel model) { 
+    public void undoMovement(TreeModel model) {
+        addNodes(model, entries);
     }
 
     @Override
@@ -137,5 +86,4 @@ public class WoodCommandDeleteNodes implements WoodCommand {
     public String getCommandText() {
         return "Delete";
     }
-
 }

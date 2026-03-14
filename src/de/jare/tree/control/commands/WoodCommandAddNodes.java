@@ -7,125 +7,75 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 
 /**
- * Command that adds one or more nodes (and their subtrees) under a parent node.
+ * Command that adds one or more nodes (and their subtrees) under parent nodes.
  * <p>
- * The parent is identified by its editId, and the nodes to add are stored as
- * deep copies. On undo all added nodes are removed again.
+ * Each parent is identified by its editId, and the nodes to add are stored as
+ * deep copies. On execute the nodes are inserted, on undo they are removed.
  * </p>
  */
-public class WoodCommandAddNodes implements WoodCommand {
+public class WoodCommandAddNodes extends AbstractNodeMovementCommand {
 
-    private static class Entry {
-
-        final int index;
-        final DefaultMutableTreeNode snapshot;
-
-        Entry(int index, DefaultMutableTreeNode snapshot) {
-            this.index = index;
-            this.snapshot = snapshot;
-        }
-    }
-
-    private final long parentEditId;
     private final Entry[] entries;
     private final String description;
 
-    /**
-     * @param parentNode parent node under which the new nodes will be added
-     * @param nodesToAdd nodes (with userObject = JsonTreeNodeData) to add; will
-     * be deep-copied into the command
-     * @param startIndex insert index for the first node; if &lt; 0, append at
-     * end
-     */
-    public WoodCommandAddNodes(DefaultMutableTreeNode parentNode,
+    public WoodCommandAddNodes(
             DefaultMutableTreeNode[] nodesToAdd,
-            int startIndex) {
-        if (parentNode == null || nodesToAdd == null || nodesToAdd.length == 0) {
-            throw new IllegalArgumentException("parentNode and nodesToAdd must not be null/empty");
-        }
-        Object uo = parentNode.getUserObject();
-        if (!(uo instanceof JsonTreeNodeData jd)) {
-            throw new IllegalArgumentException("parentNode userObject must be JsonTreeNodeData");
-        }
-        this.parentEditId = jd.getEditId();
+            DefaultMutableTreeNode[] parentNodes,
+            int[] indices) {
 
-        this.entries = new Entry[nodesToAdd.length];
-        for (int i = 0; i < nodesToAdd.length; i++) {
+        if (nodesToAdd == null || parentNodes == null || nodesToAdd.length == 0) {
+            throw new IllegalArgumentException("parentNodes and nodesToAdd must not be null/empty");
+        }
+        if (nodesToAdd.length != parentNodes.length) {
+            throw new IllegalArgumentException("nodesToAdd and parentNodes length mismatch");
+        }
+
+        int length = nodesToAdd.length;
+        this.entries = new Entry[length];
+        int lastIdx = -1;
+
+        for (int i = 0; i < length; i++) {
             DefaultMutableTreeNode n = nodesToAdd[i];
+            DefaultMutableTreeNode p = parentNodes[i];
+
             if (n == null) {
                 throw new IllegalArgumentException("nodesToAdd[" + i + "] must not be null");
             }
-            int idx = startIndex < 0 ? -1 : (startIndex + i);
-            entries[i] = new Entry(idx, deepCopy(n));
-        }
-
-        if (nodesToAdd.length == 1) {
-            this.description = "'" + nodesToAdd[0].getUserObject() + "'";
-        } else {
-            this.description = nodesToAdd.length + " nodes";
-        }
-    }
-
-    @Override
-    public void execute(TreeModel model) {
-        if (!(model instanceof DefaultTreeModel dtm)) {
-            return;
-        }
-        DefaultMutableTreeNode parent = findNodeByEditId(model, parentEditId);
-        if (parent == null) {
-            return;
-        }
-
-        // In aufsteigender Indexreihenfolge einf�gen
-        Entry[] sorted = entries.clone();
-        java.util.Arrays.sort(sorted, java.util.Comparator.comparingInt(e -> e.index < 0 ? Integer.MAX_VALUE : e.index));
-
-        for (Entry e : sorted) {
-            int insertIndex;
-            if (e.index < 0) {
-                insertIndex = parent.getChildCount();
-            } else {
-                insertIndex = Math.min(e.index, parent.getChildCount());
+            if (p == null) {
+                throw new IllegalArgumentException("parentNodes[" + i + "] must not be null");
             }
-            DefaultMutableTreeNode copy = deepCopy(e.snapshot);
-            dtm.insertNodeInto(copy, parent, insertIndex);
-        }
-    }
 
-    @Override
-    public void undo(TreeModel model) {
-        if (!(model instanceof DefaultTreeModel dtm)) {
-            return;
-        }
-        DefaultMutableTreeNode parent = findNodeByEditId(model, parentEditId);
-        if (parent == null) {
-            return;
-        }
-
-        // Wir entfernen anhand der editIds der Snapshots,
-        // in absteigender Indexreihenfolge, damit Indizes stabil bleiben.
-        Entry[] sorted = entries.clone();
-        java.util.Arrays.sort(sorted, (a, b) -> Integer.compare(
-                b.index < 0 ? Integer.MAX_VALUE : b.index,
-                a.index < 0 ? Integer.MAX_VALUE : a.index));
-
-        for (Entry e : sorted) {
-            JsonTreeNodeData snapData = (JsonTreeNodeData) e.snapshot.getUserObject();
-            long nodeId = snapData.getEditId();
-
-            for (int i = 0; i < parent.getChildCount(); i++) {
-                DefaultMutableTreeNode child = (DefaultMutableTreeNode) parent.getChildAt(i);
-                Object uo = child.getUserObject();
-                if (uo instanceof JsonTreeNodeData d && d.getEditId() == nodeId) {
-                    dtm.removeNodeFromParent(child);
-                    break;
+            int idx = -1;
+            if (indices != null) {
+                if (indices.length > i) {
+                    idx = indices[i];
+                } else {
+                    idx = (lastIdx < 0) ? -1 : (lastIdx + 1);
                 }
             }
+            lastIdx = idx;
+
+            Object pData = p.getUserObject();
+            if (!(pData instanceof JsonTreeNodeData parentData)) {
+                throw new IllegalArgumentException("parentNodes[" + i + "] userObject must be JsonTreeNodeData");
+            }
+
+            entries[i] = new Entry(parentData.getEditId(), idx, deepCopy(n));
         }
+
+        this.description = (nodesToAdd.length == 1)
+                ? "'" + nodesToAdd[0].getUserObject() + "'"
+                : nodesToAdd.length + " nodes";
     }
 
     @Override
-    public void skip(TreeModel model) {
+    public void executeMovement(TreeModel model) {
+        addNodes(model, entries);
+    }
+
+    @Override
+    public void undoMovement(TreeModel model) {
+        deleteNodes(model, entries);
     }
 
     @Override
@@ -137,5 +87,4 @@ public class WoodCommandAddNodes implements WoodCommand {
     public String getCommandText() {
         return "Add";
     }
-
 }
