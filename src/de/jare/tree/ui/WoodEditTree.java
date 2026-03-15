@@ -65,7 +65,10 @@ public class WoodEditTree extends JTree implements TreeSelectionListener, Conten
         master.addSelectionListener(1, this);
         master.addContentListener(1, this);
         master.addFocusListener(1, this);
+    }
 
+    MasterControl getMaster() {
+        return master;
     }
 
     @Override

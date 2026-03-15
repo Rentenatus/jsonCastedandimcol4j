@@ -1,22 +1,27 @@
-/* <copyright> 
- * Copyright (c) 2025, Janusch Rentenatus. This program and the accompanying materials are made available under the
- * terms of the Eclipse Public License v2.0 which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v20.html
- * </copyright>
- */
 package de.jare.tree.ui;
 
+import de.jare.tree.control.MasterControl;
+import de.jare.tree.control.commands.WoodCommandMoveNodes;
 import de.jare.tree.data.JsonTreeNodeData;
+
 import java.awt.datatransfer.*;
 import java.io.IOException;
 import javax.swing.*;
 import static javax.swing.TransferHandler.MOVE;
 import javax.swing.tree.*;
 
+/**
+ * TransferHandler for moving tree nodes via drag & drop.
+ * <p>
+ * Performs a logical move by creating a WoodCommandMoveNodes and pushing it
+ * into the UndoManager instead of directly modifying the model in exportDone.
+ * </p>
+ */
 class TreeNodeTransferHandler extends TransferHandler {
 
     private final DataFlavor nodesFlavor;
-    private DefaultMutableTreeNode[] nodesToRemove;
+    private DefaultMutableTreeNode[] nodesToMove;
+    private DefaultMutableTreeNode[] sourceParents;
 
     TreeNodeTransferHandler() {
         try {
@@ -41,11 +46,16 @@ class TreeNodeTransferHandler extends TransferHandler {
             return null;
         }
         DefaultMutableTreeNode[] nodes = new DefaultMutableTreeNode[paths.length];
+        DefaultMutableTreeNode[] parents = new DefaultMutableTreeNode[paths.length];
+
         for (int i = 0; i < paths.length; i++) {
-            nodes[i] = (DefaultMutableTreeNode) paths[i].getLastPathComponent();
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode) paths[i].getLastPathComponent();
+            nodes[i] = node;
+            parents[i] = (DefaultMutableTreeNode) node.getParent();
         }
-        // Originale merken, um sie sp�ter aus dem alten Parent zu entfernen
-        nodesToRemove = nodes;
+
+        this.nodesToMove = nodes;
+        this.sourceParents = parents;
         return new NodesTransferable(nodes);
     }
 
@@ -77,7 +87,7 @@ class TreeNodeTransferHandler extends TransferHandler {
                 }
             }
 
-            // 2. JSON-Regeln: jeder Root des Teilbaums muss Kind von target sein d�rfen
+            // 2. JSON-Regeln: jeder Root des Teilbaums muss Kind von target sein dürfen
             for (DefaultMutableTreeNode node : dragged) {
                 Object clipUo = node.getUserObject();
                 if (!(clipUo instanceof JsonTreeNodeData clipData)) {
@@ -110,22 +120,42 @@ class TreeNodeTransferHandler extends TransferHandler {
                     = (DefaultMutableTreeNode[]) support.getTransferable().getTransferData(nodesFlavor);
 
             int index = (childIndex == -1) ? parent.getChildCount() : childIndex;
+            int startIndex = index;
 
             DefaultMutableTreeNode lastCopy = null;
 
+            // Physischer Move: hier fügen wir neue Kopien ein
             for (DefaultMutableTreeNode node : nodes) {
                 DefaultMutableTreeNode copy = deepCopy(node);
                 model.insertNodeInto(copy, parent, index++);
                 lastCopy = copy;
             }
 
-            // Nach dem Einf�gen: letzte Kopie selektieren
+            // Nach dem Einfügen: letzte Kopie selektieren
             if (lastCopy != null) {
                 TreePath newPath = new TreePath(lastCopy.getPath());
                 tree.setSelectionPath(newPath);
                 tree.scrollPathToVisible(newPath);
                 // TreeSelectionListener im WoodEditTree feuert dann master.fireSelection(...)
             }
+
+            // Undo-Command registrieren
+            if (tree instanceof WoodEditTree editTree
+                    && nodesToMove != null
+                    && sourceParents != null) {
+
+                MasterControl master = editTree.getMaster(); // ggf. Getter in WoodEditTree
+                if (master != null) {
+                    WoodCommandMoveNodes cmd = new WoodCommandMoveNodes(
+                            nodesToMove, // Originale
+                            sourceParents, // ursprüngliche Eltern
+                            parent, // Ziel-Eltern
+                            startIndex // Startindex im Ziel
+                    );
+                    master.getUndoManager().pushCommand(cmd);
+                }
+            }
+
         } catch (UnsupportedFlavorException | IOException e) {
             return false;
         }
@@ -134,21 +164,21 @@ class TreeNodeTransferHandler extends TransferHandler {
 
     @Override
     protected void exportDone(JComponent source, Transferable data, int action) {
-        if (action != MOVE || nodesToRemove == null) {
+        if (action != MOVE || nodesToMove == null) {
             return;
         }
         JTree tree = (JTree) source;
         DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
 
         // Originale an alter Stelle entfernen (von unten nach oben, um Indizes stabil zu halten)
-        for (int i = nodesToRemove.length - 1; i >= 0; i--) {
-            DefaultMutableTreeNode node = nodesToRemove[i];
+        for (int i = nodesToMove.length - 1; i >= 0; i--) {
+            DefaultMutableTreeNode node = nodesToMove[i];
             MutableTreeNode parent = (MutableTreeNode) node.getParent();
             if (parent != null) {
                 model.removeNodeFromParent(node);
             }
         }
-        nodesToRemove = null;
+        nodesToMove = null;
     }
 
     private boolean isNodeDescendant(DefaultMutableTreeNode target, DefaultMutableTreeNode ancestor) {
@@ -164,7 +194,7 @@ class TreeNodeTransferHandler extends TransferHandler {
     }
 
     /**
-     * Tiefkopie eines Knotens inkl. seiner Kinder.
+     * Tiefkopie eines Knotens inkl. seiner Kinder (ohne editId-Änderung).
      */
     private DefaultMutableTreeNode deepCopy(DefaultMutableTreeNode original) {
         DefaultMutableTreeNode copy = new DefaultMutableTreeNode(original.getUserObject());
