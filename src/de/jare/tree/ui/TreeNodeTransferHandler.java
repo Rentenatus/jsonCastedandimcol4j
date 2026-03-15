@@ -3,6 +3,7 @@ package de.jare.tree.ui;
 import de.jare.tree.control.MasterControl;
 import de.jare.tree.control.commands.WoodCommandMoveNodes;
 import de.jare.tree.data.JsonTreeNodeData;
+import de.jare.tree.data.WoodUtils;
 
 import java.awt.datatransfer.*;
 import java.io.IOException;
@@ -116,8 +117,10 @@ class TreeNodeTransferHandler extends TransferHandler {
         DefaultMutableTreeNode parent = (DefaultMutableTreeNode) dest.getLastPathComponent();
 
         try {
-            DefaultMutableTreeNode[] nodes
+            DefaultMutableTreeNode[] nodesOrg
                     = (DefaultMutableTreeNode[]) support.getTransferable().getTransferData(nodesFlavor);
+
+            DefaultMutableTreeNode[] nodes = WoodUtils.sortOnPos(nodesOrg);
 
             int index = (childIndex == -1) ? parent.getChildCount() : childIndex;
             int startIndex = index;
