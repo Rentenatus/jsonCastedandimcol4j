@@ -134,6 +134,68 @@ public abstract class AbstractNodeMovementCommand implements WoodCommand {
         }
     }
 
+    protected void checkNodesPos(TreeModel model, Entry[] entries, String statusLabel) {
+        DefaultTreeModel dtm = asDefaultModel(model);
+        if (dtm == null) {
+            return;
+        }
+
+        boolean anyReordered = false;
+        boolean anyError = false;
+
+        for (Entry e : entries) {
+            DefaultMutableTreeNode parent = findNodeByEditId(model, e.parentEditId);
+            if (parent == null) {
+                anyError = true;
+                continue;
+            }
+            Object snapUo = e.snapshot.getUserObject();
+            if (!(snapUo instanceof JsonTreeNodeData snapData)) {
+                anyError = true;
+                continue;
+            }
+            long snapEditId = snapData.getEditId();
+
+            DefaultMutableTreeNode found = null;
+            int foundIdx = -1;
+            for (int i = 0; i < parent.getChildCount(); i++) {
+                DefaultMutableTreeNode child = (DefaultMutableTreeNode) parent.getChildAt(i);
+                Object uo = child.getUserObject();
+                if (uo instanceof JsonTreeNodeData data && data.getEditId() == snapEditId) {
+                    found = child;
+                    foundIdx = i;
+                    break;
+                }
+            }
+
+            if (found == null) {
+                anyError = true;
+                continue;
+            }
+
+            if (foundIdx != e.index) {
+                //System.out.println(foundIdx + " != " + e.index);
+                anyReordered = true;
+                // Node an Zielposition verschieben
+                parent.remove(foundIdx);
+                // entfernt, Kinder bleiben intakt
+                int target = e.index;
+                if (target < 0 || target > parent.getChildCount()) {
+                    target = parent.getChildCount();
+                }
+                parent.insert(found, target);
+            }
+        }
+
+        if (anyError) {
+            this.status = statusLabel + " (pos error)";
+        } else if (anyReordered) {
+            this.status = statusLabel + " (repositioned)";
+        } else {
+            this.status = statusLabel;
+        }
+    }
+
     protected DefaultTreeModel asDefaultModel(TreeModel model) {
         return (model instanceof DefaultTreeModel dtm) ? dtm : null;
     }

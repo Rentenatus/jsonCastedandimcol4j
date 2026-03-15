@@ -22,9 +22,9 @@ public class WoodCommandMoveNodes extends AbstractNodeMovementCommand {
      * @param nodesToMove Knoten, die verschoben werden sollen (aktueller
      * Baumzustand)
      * @param parentNodes jeweilige Quell-Eltern der nodesToMove
-     * @param trgNode Ziel-Elternknoten, unter den eingef�gt werden soll
+     * @param trgNode Ziel-Elternknoten, unter den eingef?gt werden soll
      * @param startIdx Startindex beim Ziel (Index des ersten verschobenen
-     * Kindes), -1 = am Ende anh�ngen
+     * Kindes), -1 = am Ende anh?ngen
      */
     public WoodCommandMoveNodes(
             DefaultMutableTreeNode[] nodesToMove,
@@ -53,7 +53,7 @@ public class WoodCommandMoveNodes extends AbstractNodeMovementCommand {
         this.deleteEntries = new Entry[length];
         this.addEntries = new Entry[length];
 
-        // Ziel-Indizes fortlaufend ab startIdx; -1 => beim Einf�gen ans Ende
+        // Ziel-Indizes fortlaufend ab startIdx; -1 => beim Einf?gen ans Ende
         int lastTrgIdx = startIdx;
 
         for (int i = 0; i < length; i++) {
@@ -76,17 +76,18 @@ public class WoodCommandMoveNodes extends AbstractNodeMovementCommand {
             if (srcIdx < 0) {
                 throw new IllegalArgumentException("nodesToMove[" + i + "] is not a child of parentNodes[" + i + "]");
             }
+            //System.out.println(p + "." + n + " ::: " + srcIdx);
 
-            // Delete-Entry: vom urspr�nglichen Parent/Index entfernen
+            // Delete-Entry: vom urspruenglichen Parent/Index entfernen
             deleteEntries[i] = new Entry(srcJson.getEditId(), srcIdx, deepCopy(n));
 
-            // Add-Entry: unter Ziel-Parent einf�gen
+            // Add-Entry: unter Ziel-Parent einf?gen
             int trgIdx = lastTrgIdx;
             if (trgIdx >= 0) {
                 trgIdx = lastTrgIdx;
                 lastTrgIdx++;
             } else {
-                trgIdx = -1; // beim Einf�gen ans Ende anh�ngen
+                trgIdx = -1; // beim Einf?gen ans Ende anh?ngen
             }
             addEntries[i] = new Entry(trgParentEditId, trgIdx, deepCopy(n));
         }
@@ -110,6 +111,7 @@ public class WoodCommandMoveNodes extends AbstractNodeMovementCommand {
         // Undo(Move) = Delete (Ziel) + Add (Quelle)
         deleteNodes(model, addEntries, STATUS_REVERTED);
         addNodes(model, deleteEntries, getStatus());
+        checkNodesPos(model, deleteEntries, getStatus());
     }
 
     @Override

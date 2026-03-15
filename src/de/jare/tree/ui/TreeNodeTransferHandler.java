@@ -55,7 +55,7 @@ class TreeNodeTransferHandler extends TransferHandler {
             parents[i] = (DefaultMutableTreeNode) node.getParent();
         }
 
-        this.nodesToMove = nodes;
+        this.nodesToMove = WoodUtils.sortOnPos(nodes);
         this.sourceParents = parents;
         return new NodesTransferable(nodes);
     }
@@ -117,46 +117,41 @@ class TreeNodeTransferHandler extends TransferHandler {
         DefaultMutableTreeNode parent = (DefaultMutableTreeNode) dest.getLastPathComponent();
 
         try {
-            DefaultMutableTreeNode[] nodesOrg
+            DefaultMutableTreeNode[] nodes
                     = (DefaultMutableTreeNode[]) support.getTransferable().getTransferData(nodesFlavor);
-
-            DefaultMutableTreeNode[] nodes = WoodUtils.sortOnPos(nodesOrg);
 
             int index = (childIndex == -1) ? parent.getChildCount() : childIndex;
             int startIndex = index;
 
-            DefaultMutableTreeNode lastCopy = null;
-
-            // Physischer Move: hier fügen wir neue Kopien ein
-            for (DefaultMutableTreeNode node : nodes) {
-                DefaultMutableTreeNode copy = deepCopy(node);
-                model.insertNodeInto(copy, parent, index++);
-                lastCopy = copy;
-            }
-
-            // Nach dem Einfügen: letzte Kopie selektieren
-            if (lastCopy != null) {
-                TreePath newPath = new TreePath(lastCopy.getPath());
-                tree.setSelectionPath(newPath);
-                tree.scrollPathToVisible(newPath);
-                // TreeSelectionListener im WoodEditTree feuert dann master.fireSelection(...)
-            }
-
-            // Undo-Command registrieren
+            // 1. Undo-Command registrieren (vor der physischen Änderung!)
             if (tree instanceof WoodEditTree editTree
                     && nodesToMove != null
                     && sourceParents != null) {
-
-                MasterControl master = editTree.getMaster(); // ggf. Getter in WoodEditTree
+                MasterControl master = editTree.getMaster();
                 if (master != null) {
                     WoodCommandMoveNodes cmd = new WoodCommandMoveNodes(
-                            nodesToMove, // Originale
+                            nodesToMove, // sortierte Originale (WoodUtils.sortOnPos)
                             sourceParents, // ursprüngliche Eltern
                             parent, // Ziel-Eltern
                             startIndex // Startindex im Ziel
                     );
                     master.getUndoManager().pushCommand(cmd);
                 }
+            }
+
+            // 2. Physischer Move: neue Kopien einfügen
+            DefaultMutableTreeNode lastCopy = null;
+            for (DefaultMutableTreeNode node : nodes) {
+                DefaultMutableTreeNode copy = deepCopy(node);
+                model.insertNodeInto(copy, parent, index++);
+                lastCopy = copy;
+            }
+
+            // 3. Auswahl setzen
+            if (lastCopy != null) {
+                TreePath newPath = new TreePath(lastCopy.getPath());
+                tree.setSelectionPath(newPath);
+                tree.scrollPathToVisible(newPath);
             }
 
         } catch (UnsupportedFlavorException | IOException e) {

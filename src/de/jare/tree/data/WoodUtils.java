@@ -15,14 +15,20 @@ public class WoodUtils {
         DefaultMutableTreeNode[] nodes = new DefaultMutableTreeNode[nodesOrg.length];
         int nextIdx = 0;
         while (nextIdx < nodesOrg.length) {
+            int nextPos = Integer.MAX_VALUE;
             for (int i = 0; i < nodesOrg.length; i++) {
                 DefaultMutableTreeNode next = nodesOrg[i];
                 if (next.getParent() == null || next.getParent().getIndex(next) == sortPos) {
                     nodes[nextIdx] = next;
                     nextIdx++;
+                } else {
+                    int check = next.getParent().getIndex(next);
+                    if (check > sortPos && check < nextPos) {
+                        nextPos = check;
+                    }
                 }
             }
-            sortPos++;
+            sortPos = nextPos;
         }
         return nodes;
     }

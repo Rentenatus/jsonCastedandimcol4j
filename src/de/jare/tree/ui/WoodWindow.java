@@ -39,8 +39,8 @@ public class WoodWindow extends JFrame {
         // Center: editor tabs + upper toolbar
         centerTabs = new JTabbedPane();
 
-        editorTree1 = new WoodEditTree(master, "Root1", "Scene1", "Character1");
-        editorTree2 = new WoodEditTree(master, "Root2", "Scene2", "Character2");
+        editorTree1 = new WoodEditTree(master, "Root1", "Scene1", "Character1", "Scene2", "Character2", "Scene3", "Character3");
+        editorTree2 = new WoodEditTree(master, "Root2", "Scene4", "Character4");
 
         centerTabs.addTab("Tree Editor 1", new JScrollPane(editorTree1));
         centerTabs.addTab("Tree Editor 2", new JScrollPane(editorTree2));
