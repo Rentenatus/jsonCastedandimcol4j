@@ -7,6 +7,7 @@
  */
 package de.jare.jsoncasted.model.test;
 
+import de.jare.jsoncasted.lang.JsonNodeType;
 import static de.jare.jsoncasted.model.JsonCollectionType.ARRAY;
 import static de.jare.jsoncasted.model.JsonCollectionType.LIST;
 import de.jare.jsoncasted.model.JsonModel;
@@ -34,7 +35,7 @@ public class IntTextObjectDefinition implements JsonItemDefinition {
         model = new JsonModel("Test");
         model.addBasicModel();
 
-        JsonClass seasonInt = model.newJsonClass(int.class, new JsonSeasonIntBuilder());
+        JsonClass seasonInt = model.newJsonClass(int.class, JsonNodeType.LONG, new JsonSeasonIntBuilder());
 
         configRoot = model.newJsonReflect(IntTestObject.class);
 
