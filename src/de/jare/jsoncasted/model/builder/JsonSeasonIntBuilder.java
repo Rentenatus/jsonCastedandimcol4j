@@ -7,6 +7,7 @@
 package de.jare.jsoncasted.model.builder;
 
 import de.jare.jsoncasted.item.JsonItem;
+import de.jare.jsoncasted.item.builder.BuilderService;
 import de.jare.jsoncasted.model.JsonBuildException;
 import de.jare.jsoncasted.model.item.JsonClass;
 import de.jare.jsoncasted.model.JsonType;
@@ -37,15 +38,16 @@ public class JsonSeasonIntBuilder implements JsonModellClassBuilder {
     }
 
     /**
-     * Builds an integer value from a JSON item. If the JSON value is "null" or
+     * Builds an integer value from a JSON item.If the JSON value is "null" or
      * absent, it defaults to 0.
      *
      * @param jClass The JSON class.
      * @param jsonItem The JSON item containing the value.
+     * @param builderService
      * @return The integer representation of the JSON value.
      */
     @Override
-    public Object build(JsonClass jClass, JsonItem jsonItem) {
+    public Object build(JsonClass jClass, JsonItem jsonItem, BuilderService builderService) {
         final String value = jsonItem.getStringValue();
         return value == null || "null".equals(value) ? 0 : Integer.valueOf(value);
     }
@@ -54,13 +56,13 @@ public class JsonSeasonIntBuilder implements JsonModellClassBuilder {
      * Builds a list of integer values from a JSON array.
      *
      * @param jType The JSON type for conversion.
+     * @param builderService
      * @param listIterator Iterator over JSON items.
      * @param size The expected size of the list.
      * @return A list of integer values.
-     * @throws JsonBuildException If an error occurs during conversion.
      */
     @Override
-    public ArraySeasonHashableInt buildList(JsonType jType, Iterator<JsonItem> listIterator, int size) throws JsonBuildException {
+    public ArraySeasonHashableInt buildList(JsonType jType, BuilderService builderService, Iterator<JsonItem> listIterator, int size) {
         ArraySeasonHashableInt ret = new ArraySeasonHashableInt();
         listIterator.forEachRemaining(
                 action -> ret.add(Integer.parseInt(action.getStringValue()))
@@ -72,13 +74,13 @@ public class JsonSeasonIntBuilder implements JsonModellClassBuilder {
      * Builds an array of integer values from a JSON array.
      *
      * @param jType The JSON type for conversion.
+     * @param builderService
      * @param listIterator Iterator over JSON items.
      * @param size The expected size of the array.
      * @return A primitive integer array.
-     * @throws JsonBuildException If an error occurs during conversion.
      */
     @Override
-    public int[] buildArray(JsonType jType, Iterator<JsonItem> listIterator, int size) throws JsonBuildException {
+    public int[] buildArray(JsonType jType, BuilderService builderService, Iterator<JsonItem> listIterator, int size) {
         final int[] ret = new int[size];
         int i = 0;
         while (listIterator.hasNext()) {

@@ -7,6 +7,7 @@
 package de.jare.jsoncasted.model.builder;
 
 import de.jare.jsoncasted.item.JsonItem;
+import de.jare.jsoncasted.item.builder.JsonBuilder;
 import de.jare.jsoncasted.model.JsonBuildException;
 import de.jare.jsoncasted.model.test.IntTestObject;
 import de.jare.jsoncasted.model.test.IntTextObjectDefinition;
@@ -81,7 +82,7 @@ public class JsonSeasonIntBuilderNGTest {
 
         IntTestObject root = null;
         try {
-            final Object buildInstance1 = obj1.buildInstance();
+            final Object buildInstance1 = JsonBuilder.buildInstance(definition.getModel(), false, obj1);
             System.out.println(buildInstance1.getClass().getName());
             assertNotNull(root = (IntTestObject) buildInstance1);
 

@@ -35,9 +35,9 @@ public class IntTextObjectDefinition implements JsonItemDefinition {
         model = new JsonModel("Test");
         model.addBasicModel();
 
-        JsonClass seasonInt = model.newJsonClass(int.class, JsonNodeType.LONG, new JsonSeasonIntBuilder());
+        JsonClass seasonInt = model.newJsonClass(int.class, null, JsonNodeType.LONG, new JsonSeasonIntBuilder());
 
-        configRoot = model.newJsonReflect(IntTestObject.class);
+        configRoot = model.newJsonReflect(IntTestObject.class, null);
 
         configRoot.addField("intArray", seasonInt, ARRAY);
         configRoot.addField("intSeasion", seasonInt, LIST);
