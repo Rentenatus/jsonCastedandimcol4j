@@ -26,7 +26,7 @@ import org.testng.annotations.Test;
 
 /**
  *
- * @author jRent
+ * @author Janusch Rentenatus
  */
 public class JsonSeasonIntBuilderNGTest {
 
