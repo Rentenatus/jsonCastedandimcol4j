@@ -7,14 +7,14 @@
  */
 package de.jare.jsoncasted.model.test;
 
+import de.jare.jsoncasted.io.JsonCastingLevel;
+import de.jare.jsoncasted.io.JsonItemDefinition;
 import de.jare.jsoncasted.lang.JsonNodeType;
 import static de.jare.jsoncasted.model.JsonCollectionType.ARRAY;
 import static de.jare.jsoncasted.model.JsonCollectionType.LIST;
 import de.jare.jsoncasted.model.JsonModel;
 import de.jare.jsoncasted.model.builder.JsonSeasonIntBuilder;
 import de.jare.jsoncasted.model.item.JsonClass;
-import de.jare.jsoncasted.parserwriter.JsonCastingLevel;
-import de.jare.jsoncasted.parserwriter.JsonItemDefinition;
 
 /**
  *

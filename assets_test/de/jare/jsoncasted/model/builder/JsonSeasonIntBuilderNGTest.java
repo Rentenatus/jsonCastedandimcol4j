@@ -6,15 +6,17 @@
  */
 package de.jare.jsoncasted.model.builder;
 
+import de.jare.jsoncasted.io.JsonParseException;
+import de.jare.jsoncasted.io.JsonParser;
+import de.jare.jsoncasted.io.convertservice.WoodResolution;
 import de.jare.jsoncasted.item.JsonItem;
 import de.jare.jsoncasted.item.builder.JsonBuilder;
 import de.jare.jsoncasted.model.JsonBuildException;
 import de.jare.jsoncasted.model.test.IntTestObject;
 import de.jare.jsoncasted.model.test.IntTextObjectDefinition;
-import de.jare.jsoncasted.parserwriter.JsonParseException;
-import de.jare.jsoncasted.parserwriter.JsonParser;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import static org.testng.Assert.*;
@@ -71,7 +73,14 @@ public class JsonSeasonIntBuilderNGTest {
 
         JsonItem obj1 = null;
         try {
-            obj1 = JsonParser.parse(configFile, definition, definition.getConfigRoot());
+            WoodResolution reso = JsonParser.parse(configFile, definition, definition.getConfigRoot()); 
+            if (reso.hasExceptions()) {
+                final List<JsonParseException> exceptions = reso.getUnmodifiableExceptions();
+                for (Exception exception : exceptions) {
+                    Logger.getGlobal().log(Level.SEVERE, "Parsing error: ", exception);
+                }
+            }
+            obj1 = reso.getAnswer();
         } catch (JsonParseException | IOException | NullPointerException ex) {
             Logger.getGlobal().log(Level.SEVERE, null, ex);
             fail(ex.getMessage(), ex);
