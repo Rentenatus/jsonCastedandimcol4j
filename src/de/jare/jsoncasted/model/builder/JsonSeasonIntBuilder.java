@@ -8,15 +8,14 @@ package de.jare.jsoncasted.model.builder;
 
 import de.jare.jsoncasted.item.JsonItem;
 import de.jare.jsoncasted.item.builder.BuilderService;
-import de.jare.jsoncasted.model.JsonBuildException;
-import de.jare.jsoncasted.model.item.JsonClass;
+import de.jare.jsoncasted.model.JsonModellClassBuilder;
 import de.jare.jsoncasted.model.JsonType;
+import de.jare.jsoncasted.model.item.JsonClass;
+import de.jare.ndimcol.primint.ArraySeasonHashableInt;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import de.jare.jsoncasted.model.JsonModellClassBuilder;
-import de.jare.ndimcol.primint.ArraySeasonHashableInt;
-import java.util.Collection;
 
 /**
  * The JsonIntBuilder class handles the conversion of JSON numeric values into
