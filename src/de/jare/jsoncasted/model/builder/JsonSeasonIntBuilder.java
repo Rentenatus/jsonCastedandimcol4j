@@ -46,7 +46,7 @@ public class JsonSeasonIntBuilder implements JsonModellClassBuilder {
      * @return The integer representation of the JSON value.
      */
     @Override
-    public Object build(JsonClass jClass, JsonItem jsonItem, BuilderService builderService) {
+    public Object construct(JsonClass jClass, JsonItem jsonItem, BuilderService builderService) {
         final String value = jsonItem.getStringValue();
         return value == null || "null".equals(value) ? 0 : Integer.valueOf(value);
     }
